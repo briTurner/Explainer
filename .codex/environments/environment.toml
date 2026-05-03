@@ -9,3 +9,13 @@ script = ""
 name = "Generate Docs"
 icon = "tool"
 command = "make docs-build"
+
+[[actions]]
+name = "Audit Valid Fixture"
+icon = "check"
+command = "make audit-valid"
+
+[[actions]]
+name = "Audit Invalid Fixtures"
+icon = "bug"
+command = "make audit-invalid"

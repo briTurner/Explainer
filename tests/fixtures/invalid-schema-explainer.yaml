@@ -1,0 +1,11 @@
+schemaVersion: 0.1.0
+metadata:
+  title: Invalid Schema Example
+scenes:
+  - id: no-explanation
+    artifacts:
+      - id: supporting-log
+        kind: log
+        locator:
+          kind: workspacePath
+          path: artifacts/test.log

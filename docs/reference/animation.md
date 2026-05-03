@@ -12,7 +12,7 @@ Animation targets may be visual elements or visual relationships. Animation sequ
 type Animation = {
   id?: string;
   kind: AnimationKind;
-  target: string;
+  target: AnimationTarget;
   durationMs?: number;
   delayMs?: number;
   easing?: string;
@@ -21,6 +21,10 @@ type Animation = {
   onComplete?: AnimationCompletion;
   metadata?: Record<string, unknown>;
 };
+
+type AnimationTarget =
+  | { kind: "element"; id: string }
+  | { kind: "relationship"; id: string };
 ```
 
 ## Fields

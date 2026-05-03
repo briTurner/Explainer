@@ -118,7 +118,7 @@ Renderers may present narration as slide text, speaker notes, a side panel, capt
 
 ## Visuals
 
-A `Visual` describes the primary visual representation for a scene. It does not need to be present on every scene; some explanations may be artifact-led and only use narration plus highlighted files or documents.
+A `Visual` describes the primary visual representation for a scene. It does not need to be present on every scene; some explanations may be narration-led and use supporting artifacts without a primary visual.
 
 ```ts
 type Visual = {
@@ -130,7 +130,6 @@ type Visual = {
 };
 
 type VisualKind =
-  | "uml"
   | "sequence"
   | "flow"
   | "graph"
@@ -329,10 +328,28 @@ Artifacts describe supporting information that belongs to the scene. The protoco
 ### Artifact Locator
 
 ```ts
-type ArtifactLocator = {
-  uri: string;
+type ArtifactLocator =
+  | WorkspacePathLocator
+  | FileUrlLocator
+  | ExternalUrlLocator;
+
+type WorkspacePathLocator = {
+  kind: "workspacePath";
+  path: string;
   range?: TextRange;
   symbol?: string;
+};
+
+type FileUrlLocator = {
+  kind: "fileUrl";
+  url: string;
+  range?: TextRange;
+  symbol?: string;
+};
+
+type ExternalUrlLocator = {
+  kind: "url";
+  url: string;
   fragment?: string;
 };
 
@@ -352,7 +369,8 @@ Examples:
   "kind": "sourceFile",
   "title": "Token validation",
   "locator": {
-    "uri": "Sources/Auth/AuthService.swift",
+    "kind": "workspacePath",
+    "path": "Sources/Auth/AuthService.swift",
     "range": {
       "startLine": 42,
       "endLine": 61
@@ -367,7 +385,8 @@ Examples:
   "kind": "image",
   "title": "Debt flow through the banking system",
   "locator": {
-    "uri": "artifacts/debt-flow.png"
+    "kind": "workspacePath",
+    "path": "artifacts/debt-flow.png"
   }
 }
 ```
@@ -378,13 +397,17 @@ Focus identifies what the scene is mainly about. It is a simple attention mechan
 
 ```ts
 type FocusTarget = {
-  element: string;
+  target: FocusTargetRef;
   role?: "primary" | "secondary" | "context";
   reason?: string;
 };
+
+type FocusTargetRef =
+  | { kind: "element"; id: string }
+  | { kind: "relationship"; id: string };
 ```
 
-`element` refers to a visual element ID in the same scene. Focus does not target artifacts; artifacts are supporting evidence, while focus identifies the visual entity currently being discussed.
+`target` refers to a visual element or visual relationship in the same scene. Focus does not target artifacts; artifacts are supporting evidence, while focus identifies the visual entity currently being discussed.
 
 Example:
 
@@ -392,7 +415,10 @@ Example:
 {
   "focus": [
     {
-      "element": "auth-service",
+      "target": {
+        "kind": "element",
+        "id": "auth-service"
+      },
       "role": "primary",
       "reason": "This object decides whether the request is allowed to continue."
     }
@@ -410,7 +436,7 @@ Animations happen within a single scene after that scene is active.
 type Animation = {
   id?: string;
   kind: AnimationKind;
-  target: string;
+  target: AnimationTarget;
   durationMs?: number;
   delayMs?: number;
   easing?: string;
@@ -419,6 +445,10 @@ type Animation = {
   onComplete?: AnimationCompletion;
   metadata?: Record<string, unknown>;
 };
+
+type AnimationTarget =
+  | { kind: "element"; id: string }
+  | { kind: "relationship"; id: string };
 
 type AnimationKind =
   | "reveal"
@@ -451,13 +481,19 @@ Examples:
   "animations": [
     {
       "kind": "tracePath",
-      "target": "api-to-auth-service",
+      "target": {
+        "kind": "relationship",
+        "id": "api-to-auth-service"
+      },
       "durationMs": 900,
       "onComplete": "hold"
     },
     {
       "kind": "pulse",
-      "target": "auth-service",
+      "target": {
+        "kind": "element",
+        "id": "auth-service"
+      },
       "durationMs": 600,
       "repeat": "infinite",
       "direction": "alternate"
@@ -537,7 +573,8 @@ This keeps the document format simpler and avoids asking agents to author a seco
           "kind": "sourceFile",
           "title": "API controller request entry point",
           "locator": {
-            "uri": "Sources/API/ProfileController.swift",
+            "kind": "workspacePath",
+            "path": "Sources/API/ProfileController.swift",
             "range": {
               "startLine": 18,
               "endLine": 31
@@ -547,14 +584,20 @@ This keeps the document format simpler and avoids asking agents to author a seco
       ],
       "focus": [
         {
-          "element": "api-controller",
+          "target": {
+            "kind": "element",
+            "id": "api-controller"
+          },
           "role": "primary"
         }
       ],
       "animations": [
         {
           "kind": "tracePath",
-          "target": "client-to-api",
+          "target": {
+            "kind": "relationship",
+            "id": "client-to-api"
+          },
           "durationMs": 700,
           "onComplete": "hold"
         }
@@ -611,7 +654,8 @@ This keeps the document format simpler and avoids asking agents to author a seco
           "kind": "sourceFile",
           "title": "Token validation implementation",
           "locator": {
-            "uri": "Sources/Auth/AuthService.swift",
+            "kind": "workspacePath",
+            "path": "Sources/Auth/AuthService.swift",
             "range": {
               "startLine": 42,
               "endLine": 61
@@ -621,14 +665,20 @@ This keeps the document format simpler and avoids asking agents to author a seco
       ],
       "focus": [
         {
-          "element": "auth-service",
+          "target": {
+            "kind": "element",
+            "id": "auth-service"
+          },
           "role": "primary"
         }
       ],
       "animations": [
         {
           "kind": "tracePath",
-          "target": "api-to-auth-service",
+          "target": {
+            "kind": "relationship",
+            "id": "api-to-auth-service"
+          },
           "durationMs": 900,
           "onComplete": "hold"
         }

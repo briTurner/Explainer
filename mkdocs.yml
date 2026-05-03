@@ -54,6 +54,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Auditor: auditor.md
   - Protocol:
       - protocol/index.md
       - Model: protocol/model.md

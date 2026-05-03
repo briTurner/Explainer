@@ -1,0 +1,39 @@
+schemaVersion: 0.1.0
+metadata:
+  title: Broken Relationship Example
+scenes:
+  - id: broken-scene
+    narration:
+      - kind: text
+        text: This document is structurally valid but semantically invalid.
+    visual:
+      kind: flow
+      elements:
+        - id: api
+          kind: rectangle
+          artifactRefs:
+            - missing-artifact
+        - id: api
+          kind: rectangle
+      relationships:
+        - id: api-to-auth
+          from: api
+          to: auth-service
+    artifacts:
+      - id: api-source
+        kind: sourceFile
+        locator:
+          kind: workspacePath
+          path: Sources/API/ProfileController.swift
+          range:
+            startLine: 31
+            endLine: 18
+    focus:
+      - target:
+          kind: relationship
+          id: missing-relationship
+    animations:
+      - kind: pulse
+        target:
+          kind: element
+          id: missing-element

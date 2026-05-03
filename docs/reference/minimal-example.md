@@ -78,7 +78,10 @@ This JSON form is illustrative, not yet a frozen canonical syntax. During protoc
       "animations": [
         {
           "kind": "tracePath",
-          "target": "client-to-api",
+          "target": {
+            "kind": "relationship",
+            "id": "client-to-api"
+          },
           "durationMs": 700,
           "onComplete": "hold"
         }
