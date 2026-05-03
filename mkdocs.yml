@@ -1,0 +1,97 @@
+site_name: Explainer
+site_description: Protocol and rendering system for agent-authored explanations of complex systems.
+site_url: https://example.com/
+repo_url: https://github.com/OWNER/REPO
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.highlight
+    - search.share
+  palette:
+    - scheme: default
+      primary: black
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: black
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Protocol:
+      - protocol/index.md
+      - Model: protocol/model.md
+      - Scenes: protocol/scenes.md
+      - Snapshots and Continuity: protocol/snapshots-and-continuity.md
+      - Artifacts: protocol/artifacts.md
+      - Renderer Contract: protocol/renderer-contract.md
+  - Reference:
+      - reference/index.md
+      - ExplanationDocument: reference/explanation-document.md
+      - DocumentMetadata: reference/document-metadata.md
+      - Scene: reference/scene.md
+      - NarrationBlock: reference/narration-block.md
+      - Visual: reference/visual.md
+      - VisualElement: reference/visual-element.md
+      - VisualRelationship: reference/visual-relationship.md
+      - Artifact: reference/artifact.md
+      - FocusTarget: reference/focus-target.md
+      - Animation: reference/animation.md
+      - Minimal Example: reference/minimal-example.md
+  - Decisions:
+      - decisions/index.md
+      - Canonical Format: decisions/canonical-format.md
+      - Scene Snapshots: decisions/scene-snapshots.md
+      - Stable IDs: decisions/stable-ids.md
+  - Examples:
+      - examples/index.md
+      - Codebase Walkthrough: examples/codebase-walkthrough.md
+      - Artifact-Led Explanation: examples/artifact-led-explanation.md
+      - Non-Code Domain: examples/non-code-domain.md
+  - Generation:
+      - generation/index.md
+  - Renderers:
+      - renderers/index.md
+      - Renderer Expectations: renderers/expectations.md
+  - Architecture:
+      - architecture/index.md
+      - Principles: architecture/principles.md
+      - Non-Goals: architecture/non-goals.md
+  - Roadmap:
+      - roadmap/index.md
