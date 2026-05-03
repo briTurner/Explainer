@@ -16,6 +16,8 @@ type Scene = {
 
 Scenes should be complete snapshots. If a scene needs to show an entity, relationship, label, artifact, or visual state, that information should be present in the scene itself.
 
+`title` is recommended but not required. A scene must include at least one of `narration` or `visual`. `artifacts` are optional supporting evidence and do not replace narration or visual explanation.
+
 ## Design Role
 
 Scenes are the unit renderers navigate between, compare, animate, and inspect.
@@ -30,17 +32,11 @@ A scene should answer:
 
 Prefer a small number of meaningful scenes over many tiny steps. A scene should represent a stable explanatory state, not every animation frame or implementation detail.
 
-Narration and artifacts should support the visual, but a scene does not have to include a visual. Some explanations may be artifact-led.
+Artifacts should support the explanation, but a scene does not have to include a visual. Some explanations may be narration-led with artifacts.
 
 ## Reference
 
 See [`Scene`](../reference/scene.md) and [`NarrationBlock`](../reference/narration-block.md).
-
-## Open Questions
-
-- Should scenes require a title?
-- Should narration be required, or can artifact-led scenes omit it?
-- Should scenes support explicit prerequisites or learning objectives?
 
 ## Legacy Type Sketch
 

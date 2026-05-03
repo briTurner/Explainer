@@ -4,6 +4,8 @@ Explainer models an explanation as an ordered sequence of scenes.
 
 Each scene combines narration, visuals, artifacts, focus, and animation into one inspectable snapshot. The snapshot is the source of truth for what should be visible at that moment.
 
+A useful minimum document contains `schemaVersion`, `metadata.title`, and at least one [`Scene`](../reference/scene.md). A useful minimum scene contains an `id` plus at least one of `narration` or `visual`. Artifacts are supporting evidence and are not sufficient by themselves to make a scene explanatory.
+
 ## Core Entities
 
 - [`ExplanationDocument`](../reference/explanation-document.md) is the top-level container for metadata and ordered scenes.
@@ -19,10 +21,8 @@ Each scene combines narration, visuals, artifacts, focus, and animation into one
 
 ## Working Assumption
 
-The protocol model should be independent of its authoring syntax. JSON, YAML, and generated language bindings should all describe the same data model.
+The protocol model is independent of its authoring syntax. JSON, YAML, and generated language bindings should all describe the same data model.
 
-## Open Questions
+The canonical protocol defines the shape of explanation documents. Reusable authoring conveniences belong in generation or authoring layers and compile down to canonical self-contained scene snapshots.
 
-- Which parts of the model should be required for a useful minimum document?
-- Should the protocol define reusable authoring conveniences that compile into scene snapshots?
-- Should examples be written in YAML for readability while the canonical contract is JSON Schema?
+Documentation examples may use YAML for readability while the eventual canonical validation contract is JSON Schema.

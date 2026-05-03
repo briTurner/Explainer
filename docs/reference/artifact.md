@@ -4,6 +4,8 @@
 
 Artifacts let renderers open, preview, highlight, or link to source files, documents, screenshots, traces, tests, commits, pull requests, URLs, and generated assets.
 
+Artifacts are scene-local. Artifact IDs are unique within a scene and are referenced only by other scene-local values.
+
 ## Shape
 
 ```ts
@@ -39,23 +41,44 @@ Longer explanation of what the artifact proves or supports.
 
 Location information for the artifact.
 
-Candidate shape:
+Artifact locators use explicit tagged variants so renderers do not have to infer whether a string is workspace-relative, a local file URL, or an external URL.
 
 ```ts
-type ArtifactLocator = {
-  uri: string;
+type ArtifactLocator =
+  | WorkspacePathLocator
+  | FileUrlLocator
+  | ExternalUrlLocator;
+
+type WorkspacePathLocator = {
+  kind: "workspacePath";
+  path: string;
   range?: TextRange;
   symbol?: string;
+};
+
+type FileUrlLocator = {
+  kind: "fileUrl";
+  url: string;
+  range?: TextRange;
+  symbol?: string;
+};
+
+type ExternalUrlLocator = {
+  kind: "url";
+  url: string;
   fragment?: string;
 };
+
+type TextRange = {
+  startLine: number;
+  endLine: number;
+  startColumn?: number;
+  endColumn?: number;
+};
 ```
+
+Source ranges use one-based lines and columns.
 
 ### metadata
 
 Renderer- or domain-specific pass-through data.
-
-## Open Questions
-
-- Should artifact IDs be scene-local or document-global?
-- Should source code locations model files, symbols, and ranges as distinct locator variants?
-- Should the protocol define URI schemes for workspace-relative paths?

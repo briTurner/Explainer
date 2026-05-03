@@ -57,7 +57,8 @@ This JSON form is illustrative, not yet a frozen canonical syntax. During protoc
           "kind": "sourceFile",
           "title": "API controller request entry point",
           "locator": {
-            "uri": "Sources/API/ProfileController.swift",
+            "kind": "workspacePath",
+            "path": "Sources/API/ProfileController.swift",
             "range": {
               "startLine": 18,
               "endLine": 31
@@ -67,7 +68,10 @@ This JSON form is illustrative, not yet a frozen canonical syntax. During protoc
       ],
       "focus": [
         {
-          "element": "api-controller",
+          "target": {
+            "kind": "element",
+            "id": "api-controller"
+          },
           "role": "primary"
         }
       ],
@@ -84,4 +88,4 @@ This JSON form is illustrative, not yet a frozen canonical syntax. During protoc
 }
 ```
 
-Additional examples should show renderer fallbacks, artifact-led scenes, non-code domains, and invalid-state prevention.
+Additional examples should show renderer fallbacks, narration-led scenes with artifacts, non-code domains, and invalid-state prevention.

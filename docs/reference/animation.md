@@ -4,6 +4,8 @@
 
 Animations should clarify attention or state change. They should not carry information that is missing from the base scene snapshot.
 
+Animation targets may be visual elements or visual relationships. Animation sequences are flat in v1.
+
 ## Shape
 
 ```ts
@@ -30,6 +32,8 @@ Optional animation identifier.
 ### kind
 
 Animation behavior, such as `reveal`, `hide`, `pulse`, `spotlight`, `tracePath`, `zoom`, `pan`, `expand`, `collapse`, or `sequence`.
+
+`sequence` represents a flat ordered animation sequence in v1.
 
 ### target
 
@@ -63,8 +67,4 @@ Completion behavior: `hold` or `reset`.
 
 Renderer- or domain-specific pass-through data.
 
-## Open Questions
-
-- Should animation targets include relationships?
-- Should animation sequences be recursive or flat?
-- Should renderers be required to offer reduced-motion fallbacks?
+Reduced-motion fallbacks are renderer behavior and are not part of the v1 protocol.

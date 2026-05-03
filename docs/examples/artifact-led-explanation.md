@@ -1,8 +1,10 @@
-# Artifact-Led Explanation
+# Narration-Led Explanation
 
 Not every explanation needs a diagram.
 
-An artifact-led scene can use narration, focus, and supporting evidence without a primary visual.
+A narration-led scene can use text and supporting evidence without a primary visual.
+
+Artifacts support the explanation, but they do not replace narration or visual explanation.
 
 ## Sketch
 
@@ -22,7 +24,8 @@ scenes:
         kind: sourceFile
         title: Parser regression test
         locator:
-          uri: Tests/ParserTests.swift
+          kind: workspacePath
+          path: Tests/ParserTests.swift
           range:
             startLine: 42
             endLine: 58
@@ -30,11 +33,6 @@ scenes:
         kind: log
         title: Test output
         locator:
-          uri: artifacts/test-output.log
+          kind: workspacePath
+          path: artifacts/test-output.log
 ```
-
-## Open Questions
-
-- Should focus be allowed when no visual exists?
-- Should artifact-led scenes have a first-class primary artifact?
-- Should renderers have a standard artifact layout for this case?

@@ -4,6 +4,8 @@
 
 Elements are generic visual shapes. Domain meaning comes from labels, narration, metadata, artifacts, and consistent authoring.
 
+Element IDs are unique within their scene and entity kind. Reusing the same ID across neighboring scenes communicates continuity.
+
 ## Shape
 
 ```ts
@@ -27,7 +29,9 @@ Stable element identifier within the scene and, when appropriate, across neighbo
 
 ### kind
 
-Generic visual shape, such as `rectangle`, `ellipse`, `cylinder`, `document`, `text`, `image`, or `custom`.
+Generic visual shape.
+
+V1 values: `rectangle`, `roundedRectangle`, `ellipse`, `circle`, `diamond`, `triangle`, `hexagon`, `cylinder`, `cloud`, `document`, `note`, `container`, `text`, `image`, `icon`, `table`, and `custom`.
 
 ### label
 
@@ -51,12 +55,8 @@ IDs of scene artifacts associated with this visual element.
 
 Type: references to [`Artifact`](artifact.md)
 
+Artifact references must resolve against artifacts in the same scene.
+
 ### metadata
 
 Renderer- or domain-specific pass-through data.
-
-## Open Questions
-
-- Should `id` be unique only within a scene or within the full document?
-- Which shape kinds belong in v1?
-- Should artifact references be validated against scene-local artifacts only?

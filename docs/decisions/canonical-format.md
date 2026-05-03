@@ -1,22 +1,26 @@
 # Canonical Format
 
-The current recommendation is to separate the protocol model from its authoring syntax.
+## Status
 
-## Proposed Direction
+Accepted.
+
+## Context
+
+Explainer is a protocol, not a TypeScript library. The canonical shape should not be owned by one renderer or one implementation language.
+
+The protocol needs a machine-validatable contract, but humans and agents also need readable examples while the model is still taking shape.
+
+## Decision
 
 - Use JSON Schema as the eventual canonical machine-validatable contract.
 - Allow JSON as the canonical interchange format.
 - Allow YAML as a human- and agent-friendly authoring format that maps to the same model.
 - Generate language bindings from the contract where useful.
+- Introduce the first JSON Schema soon, after the initial pass through protocol questions.
+- Use YAML examples before and after the schema stabilizes when YAML is easier to read.
 
-## Rationale
+## Consequences
 
-Explainer is a protocol, not a TypeScript library. The canonical shape should not be owned by one renderer or one implementation language.
+JSON Schema gives Explainer a neutral validation target. YAML gives authors a friendlier syntax without changing the underlying model.
 
-JSON Schema gives us a neutral validation target. YAML gives authors a friendlier syntax while the model is still being explored.
-
-## Open Questions
-
-- When should the first schema be introduced?
-- Should examples prefer YAML before the schema stabilizes?
-- Should generated reference pages come from JSON Schema, hand-authored docs, or both?
+Reference documentation should use both generated and hand-authored material: generated or schema-checked field/reference details, plus hand-authored conceptual explanation and rationale.

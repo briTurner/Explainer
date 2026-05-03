@@ -9,7 +9,7 @@ Each type page should be inspectable:
 - field-level documentation,
 - constraints,
 - links to related types,
-- open questions.
+- schema details.
 
 ## Types
 

@@ -4,9 +4,9 @@ A renderer consumes an [`ExplanationDocument`](../reference/explanation-document
 
 The protocol expresses explanation intent. The renderer translates that intent into host-specific behavior.
 
-## Responsibilities
+## Non-Normative Responsibilities
 
-A renderer should:
+Renderer compliance is not part of the v1 protocol definition. As non-normative guidance, a renderer should:
 
 - Render each scene as a complete snapshot.
 - Interpret artifacts in a way that fits the renderer's environment.
@@ -15,6 +15,7 @@ A renderer should:
 - Infer continuity across neighboring scenes from stable IDs.
 - Treat unknown metadata as pass-through data.
 - Degrade gracefully when it does not support a visual kind, animation, artifact kind, or viewport mode.
+- Report unsupported visual kinds, animation kinds, artifact kinds, or locator kinds to users instead of silently dropping meaningful information.
 
 ## Host-Specific Behavior
 
@@ -22,8 +23,4 @@ The protocol should not encode commands such as `openFileAtLine` or `vscode.exec
 
 Instead, a scene can reference an artifact and focus a target. A VS Code renderer can translate that into editor panes and line highlights. A web renderer can translate it into links, panels, or previews.
 
-## Open Questions
-
-- What is the minimum renderer feature set for protocol compliance?
-- Should renderers report unsupported features back to users?
-- Should renderer capabilities be machine-readable?
+Renderer capabilities are not part of the v1 protocol.

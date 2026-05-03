@@ -30,6 +30,8 @@ type TextNarration = {
 
 Markdown-formatted narration.
 
+Renderers are not required to support rich Markdown rendering. A renderer may degrade Markdown narration to plain text.
+
 ```ts
 type MarkdownNarration = {
   kind: "markdown";
@@ -39,7 +41,7 @@ type MarkdownNarration = {
 
 ### StepNarration
 
-Ordered or progressive explanation steps.
+Text grouped as steps.
 
 ```ts
 type StepNarration = {
@@ -48,8 +50,4 @@ type StepNarration = {
 };
 ```
 
-## Open Questions
-
-- Should Markdown be allowed in all renderers?
-- Should step narration support per-step focus or animation hooks?
-- Should narration blocks support localization IDs?
+`StepNarration` does not support per-step focus, animation hooks, interaction state, or localization IDs in v1.

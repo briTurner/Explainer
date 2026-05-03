@@ -39,17 +39,14 @@ scenes:
         kind: sourceFile
         title: API controller request entry point
         locator:
-          uri: Sources/API/ProfileController.swift
+          kind: workspacePath
+          path: Sources/API/ProfileController.swift
           range:
             startLine: 18
             endLine: 31
     focus:
-      - element: api-controller
+      - target:
+          kind: element
+          id: api-controller
         role: primary
 ```
-
-## Open Questions
-
-- Should codebase examples require source ranges?
-- Should agent-authored examples include confidence or evidence quality?
-- Should renderer-specific examples live here or under renderer docs?
