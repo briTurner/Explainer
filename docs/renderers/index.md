@@ -13,3 +13,7 @@ For example, the same artifact locator could become:
 - A clickable source link in a web renderer.
 - An editor pane and highlighted range in a VS Code renderer.
 - A document attachment in a mobile renderer.
+
+## Available Renderers
+
+- `renderers/web` is a dependency-free browser renderer for local inspection of Explainer JSON/YAML documents.
