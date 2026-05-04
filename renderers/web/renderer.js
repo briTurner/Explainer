@@ -58,8 +58,8 @@
             kind: "sourceFile",
             title: "API controller request entry point",
             locator: {
-              kind: "workspacePath",
-              path: "Sources/API/ProfileController.swift",
+              kind: "filePath",
+              path: "/Users/example/project/Sources/API/ProfileController.swift",
               range: { startLine: 18, endLine: 31 }
             }
           }
@@ -126,7 +126,7 @@
       "url",
       "generated"
     ]),
-    locatorKinds: new Set(["workspacePath", "fileUrl", "url"]),
+    locatorKinds: new Set(["filePath", "fileUrl", "url"]),
     animationKinds: new Set(["reveal", "hide", "pulse", "spotlight", "tracePath", "zoom", "pan", "expand", "collapse", "sequence"])
   };
 
@@ -588,6 +588,9 @@
       }
       if (!artifact.locator || !PROTOCOL.locatorKinds.has(artifact.locator.kind)) {
         diagnostics.push(diagnostic("unsupported_locator_kind", `${artifactPath}/locator/kind`, `Unsupported locator kind "${artifact.locator?.kind}".`));
+      }
+      if (artifact.locator?.kind === "filePath" && !isAbsoluteLocalPath(artifact.locator.path)) {
+        diagnostics.push(diagnostic("relative_file_path", `${artifactPath}/locator/path`, "filePath locators must use absolute local paths."));
       }
       const range = artifact.locator?.range;
       if (range && range.startLine > range.endLine) {
@@ -1467,8 +1470,12 @@
 
     const fileName = locatorFileName(locator);
     const wrapper = el("p", { className: "locator artifact-citation" });
-    if (locator.kind === "fileUrl" || locator.kind === "url") {
-      const href = locator.kind === "url" && locator.fragment ? `${locator.url}#${locator.fragment}` : locator.url;
+    if (locator.kind === "filePath" || locator.kind === "fileUrl" || locator.kind === "url") {
+      const href = locator.kind === "filePath"
+        ? filePathToUrl(locator.path)
+        : locator.kind === "url" && locator.fragment
+          ? `${locator.url}#${locator.fragment}`
+          : locator.url;
       const link = el("a", { href, text: fileName });
       link.target = "_blank";
       link.rel = "noreferrer";
@@ -1526,8 +1533,8 @@
     if (!locator) {
       return null;
     }
-    if (locator.kind === "workspacePath" && locator.path) {
-      return new URL(locator.path, workspaceRootUrl()).href;
+    if (locator.kind === "filePath" && locator.path) {
+      return filePathToUrl(locator.path);
     }
     if (locator.kind === "fileUrl" && locator.url) {
       return locator.url;
@@ -1538,8 +1545,21 @@
     return null;
   }
 
-  function workspaceRootUrl() {
-    return new URL("../../", window.location.href);
+  function filePathToUrl(path) {
+    if (!path) {
+      return "";
+    }
+    if (/^[a-z][a-z0-9+.-]*:/i.test(path)) {
+      return path;
+    }
+    if (path.startsWith("/")) {
+      return new URL(`file://${path}`).href;
+    }
+    return path;
+  }
+
+  function isAbsoluteLocalPath(path) {
+    return typeof path === "string" && (path.startsWith("/") || /^[A-Za-z]:[\\/]/.test(path));
   }
 
   function locatorFileName(locator) {

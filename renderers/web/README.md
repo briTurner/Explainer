@@ -27,6 +27,14 @@ of being silently dropped.
 - `renderer.js` contains the protocol-aware rendering and validation logic.
 - `styles.css` defines the web presentation.
 
+## Local Artifacts
+
+Documents should use `filePath` locators with absolute local paths for source
+files, logs, images, and other local evidence. The renderer preserves those
+paths when creating artifact links and previews. Browser security still controls
+whether a `file://` artifact can be fetched directly from the page's current
+execution context.
+
 ## Usage
 
 Open `renderers/web/index.html` in a browser. The page can render the built-in
