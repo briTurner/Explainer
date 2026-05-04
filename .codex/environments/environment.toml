@@ -12,10 +12,13 @@ command = "make docs-build"
 
 [[actions]]
 name = "Audit Valid Fixture"
-icon = "check"
 command = "make audit-valid"
 
 [[actions]]
 name = "Audit Invalid Fixtures"
-icon = "bug"
 command = "make audit-invalid"
+
+[[actions]]
+name = "Web Renderer"
+icon = "tool"
+command = "make web-renderer"
