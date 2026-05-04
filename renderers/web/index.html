@@ -20,15 +20,17 @@
               <div id="document-tags" class="tag-row"></div>
             </div>
           </section>
-          <nav id="scene-list" class="scene-list" aria-label="Scenes"></nav>
-          <div class="toolbar-group scene-controls">
-            <button id="previous-scene" type="button" class="icon-button" title="Previous scene" aria-label="Previous scene">
-              <span aria-hidden="true">‹</span>
-            </button>
-            <button id="next-scene" type="button" class="icon-button" title="Next scene" aria-label="Next scene">
-              <span aria-hidden="true">›</span>
-            </button>
-            <span id="scene-counter" class="scene-counter">0 / 0</span>
+          <div class="scene-navigation">
+            <nav id="scene-list" class="scene-list" aria-label="Scenes"></nav>
+            <div class="toolbar-group scene-controls">
+              <button id="previous-scene" type="button" class="icon-button" title="Previous scene" aria-label="Previous scene">
+                <span aria-hidden="true">‹</span>
+              </button>
+              <button id="next-scene" type="button" class="icon-button" title="Next scene" aria-label="Next scene">
+                <span aria-hidden="true">›</span>
+              </button>
+              <span id="scene-counter" class="scene-counter">0 / 0</span>
+            </div>
           </div>
           <div class="toolbar-group file-actions">
             <label class="file-control">
@@ -48,37 +50,25 @@
           </div>
         </section>
 
-        <section class="stage-grid">
-          <article class="visual-panel" aria-label="Scene visual">
+        <section class="scene-content">
+          <section class="narration-band" aria-label="Scene narration">
             <div class="scene-heading">
               <p id="scene-kicker" class="eyebrow">Scene</p>
               <h2 id="scene-title">Load a document</h2>
             </div>
-            <div id="visual-stage" class="visual-stage"></div>
-          </article>
+            <div id="narration-panel" class="narration-stack"></div>
+          </section>
 
-          <aside class="inspector" aria-label="Scene inspector">
-            <section>
-              <h3>Narration</h3>
-              <div id="narration-panel" class="narration-stack"></div>
-            </section>
-            <section>
+          <section class="stage-grid">
+            <article class="visual-panel" aria-label="Scene visual">
+              <div id="visual-stage" class="visual-stage"></div>
+            </article>
+
+            <aside class="artifact-viewer" aria-label="Artifact viewer">
               <h3>Artifacts</h3>
               <div id="artifact-panel" class="artifact-stack"></div>
-            </section>
-            <section>
-              <h3>Focus</h3>
-              <div id="focus-panel" class="focus-stack"></div>
-            </section>
-            <section>
-              <h3>Selection</h3>
-              <div id="selection-panel" class="selection-panel">Select a visual element or relationship.</div>
-            </section>
-            <section>
-              <h3>Diagnostics</h3>
-              <div id="diagnostic-panel" class="diagnostic-stack"></div>
-            </section>
-          </aside>
+            </aside>
+          </section>
         </section>
       </section>
     </main>

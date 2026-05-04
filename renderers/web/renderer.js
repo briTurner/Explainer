@@ -164,10 +164,7 @@
         "scene-title",
         "visual-stage",
         "narration-panel",
-        "artifact-panel",
-        "focus-panel",
-        "selection-panel",
-        "diagnostic-panel"
+        "artifact-panel"
       ];
       this.dom = Object.fromEntries(ids.map((id) => [id, this.root.getElementById(id)]));
     }
@@ -246,7 +243,6 @@
       this.renderDocumentHeader();
       this.renderSceneList();
       this.renderScene();
-      this.renderDiagnostics();
     }
 
     renderDocumentHeader() {
@@ -266,7 +262,8 @@
           className: `scene-tab${index === this.sceneIndex ? " active" : ""}`,
           type: "button"
         });
-        button.textContent = index === this.sceneIndex ? `${index + 1}. ${scene.title || scene.id}` : String(index + 1);
+        button.textContent = String(index + 1);
+        button.setAttribute("aria-label", `${index + 1}. ${scene.title || scene.id}`);
         button.title = scene.title || scene.id;
         button.addEventListener("click", () => this.goToScene(index));
         return button;
@@ -285,8 +282,6 @@
         replaceChildren(this.dom["visual-stage"], el("div", { className: "empty-state", text: "No renderable scene is available." }));
         replaceChildren(this.dom["narration-panel"]);
         replaceChildren(this.dom["artifact-panel"]);
-        replaceChildren(this.dom["focus-panel"]);
-        this.dom["selection-panel"].textContent = "Select a visual element or relationship.";
         return;
       }
 
@@ -295,8 +290,6 @@
       this.renderVisual(scene);
       this.renderNarration(scene);
       this.renderArtifacts(scene);
-      this.renderFocus(scene);
-      this.renderSelection();
     }
 
     renderVisual(scene) {
@@ -331,10 +324,11 @@
       const hasFocus = focusIds.size > 0;
       const relationshipsLayer = svgEl("g", { class: "relationships-layer" });
       const elementsLayer = svgEl("g", { class: "elements-layer" });
+      const endpointPlans = buildRelationshipEndpointPlans(visual, this.positionsById);
 
       for (const [relationshipIndex, relationship] of (visual.relationships ?? []).entries()) {
         const showLabel = shouldShowRelationshipLabel(visual, relationship, focusedRelationshipIds);
-        const node = this.renderRelationship(relationship, focusClasses, hasFocus, relationshipIndex, showLabel);
+        const node = this.renderRelationship(relationship, focusClasses, hasFocus, relationshipIndex, showLabel, endpointPlans.get(relationship.id));
         relationshipsLayer.appendChild(node);
         this.relationshipsById.set(relationship.id, relationship);
       }
@@ -387,7 +381,7 @@
       return group;
     }
 
-    renderRelationship(relationship, focusClasses, hasFocus, relationshipIndex = 0, showLabel = true) {
+    renderRelationship(relationship, focusClasses, hasFocus, relationshipIndex = 0, showLabel = true, endpointPlan = null) {
       const from = this.positionsById.get(relationship.from);
       const to = this.positionsById.get(relationship.to);
       const groupClasses = [
@@ -418,11 +412,11 @@
         return group;
       }
 
-      const pathKind = relationship.path ?? defaultRelationshipPath(this.currentScene()?.visual, from, to);
-      const { start, end, route } = relationshipEndpoints(pathKind, from, to);
+      const pathKind = endpointPlan?.pathKind ?? relationship.path ?? defaultRelationshipPath(this.currentScene()?.visual, from, to);
+      const { start, end, route } = endpointPlan ?? relationshipEndpoints(pathKind, from, to);
       const path = svgEl("path", {
         class: "relationship-line",
-        d: relationshipPath(pathKind, start, end, route),
+        d: relationshipPath(pathKind, start, end, route, endpointPlan),
         "stroke-width": lineWeight(relationship.line?.weight),
         "stroke-dasharray": lineDash(relationship.line?.pattern),
         "marker-start": markerUrl(relationship.startDecoration),
@@ -481,67 +475,10 @@
       const artifacts = (scene.artifacts ?? []).map((artifact) => {
         const item = el("article", { className: "artifact-item" });
         item.appendChild(el("strong", { text: artifact.title || artifact.id }));
-        item.appendChild(el("p", { text: `${artifact.kind} · ${artifact.id}` }));
-        if (artifact.description) {
-          item.appendChild(el("p", { text: artifact.description }));
-        }
-        item.appendChild(renderLocator(artifact.locator));
-        appendMetadata(item, artifact.metadata);
+        item.appendChild(renderArtifactCitation(artifact.locator));
         return item;
       });
       replaceChildren(this.dom["artifact-panel"], ...artifacts.length ? artifacts : [emptySmall("No artifacts for this scene.")]);
-    }
-
-    renderFocus(scene) {
-      const items = (scene.focus ?? []).map((focus) => {
-        const item = el("article", { className: "focus-item" });
-        item.appendChild(el("strong", { text: `${focus.role || "focus"} · ${focus.target.kind}:${focus.target.id}` }));
-        if (focus.reason) {
-          item.appendChild(el("p", { text: focus.reason }));
-        }
-        return item;
-      });
-      replaceChildren(this.dom["focus-panel"], ...items.length ? items : [emptySmall("No focus targets for this scene.")]);
-    }
-
-    renderSelection() {
-      const scene = this.currentScene();
-      if (!scene || !this.selected) {
-        this.dom["selection-panel"].textContent = "Select a visual element or relationship.";
-        return;
-      }
-
-      const entity = this.selected.kind === "element"
-        ? this.elementsById.get(this.selected.id)
-        : this.relationshipsById.get(this.selected.id);
-      if (!entity) {
-        this.dom["selection-panel"].textContent = "Selection is not present in this scene.";
-        return;
-      }
-
-      const panel = el("div");
-      panel.appendChild(el("strong", { text: entity.label || entity.title || entity.id }));
-      panel.appendChild(el("p", { text: `${this.selected.kind} · ${entity.kind || entity.id}` }));
-      if (entity.description) {
-        panel.appendChild(el("p", { text: entity.description }));
-      }
-      const refs = resolveArtifactRefs(entity.artifactRefs ?? [], scene.artifacts ?? []);
-      if (refs.length) {
-        panel.appendChild(el("p", { text: `Artifacts: ${refs.map((artifact) => artifact.title || artifact.id).join(", ")}` }));
-      }
-      appendMetadata(panel, entity.metadata);
-      replaceChildren(this.dom["selection-panel"], panel);
-    }
-
-    renderDiagnostics() {
-      const items = this.diagnostics.map((item) => {
-        const wrapper = el("article", { className: "diagnostic-item" });
-        wrapper.appendChild(el("strong", { text: item.code }));
-        wrapper.appendChild(el("p", { text: item.path }));
-        wrapper.appendChild(el("p", { text: item.message }));
-        return wrapper;
-      });
-      replaceChildren(this.dom["diagnostic-panel"], ...items.length ? items : [emptySmall("No diagnostics.")]);
     }
 
     selectEntity(kind, id) {
@@ -1181,6 +1118,168 @@
     return "straight";
   }
 
+  function buildRelationshipEndpointPlans(visual, positions) {
+    const plans = new Map();
+    const portGroups = new Map();
+    for (const relationship of visual.relationships ?? []) {
+      const from = positions.get(relationship.from);
+      const to = positions.get(relationship.to);
+      if (!from || !to) {
+        continue;
+      }
+
+      const pathKind = relationship.path ?? defaultRelationshipPath(visual, from, to);
+      const plan = relationshipEndpointPlan(pathKind, from, to);
+      plans.set(relationship.id, plan);
+      reservePort(portGroups, relationship.from, from, plan.startSide, centerOf(to), plan, "start");
+      reservePort(portGroups, relationship.to, to, plan.endSide, centerOf(from), plan, "end");
+    }
+
+    for (const group of portGroups.values()) {
+      group.sort((a, b) => a.desired - b.desired || a.order - b.order);
+      group.forEach((entry, index) => {
+        entry.plan[entry.endpoint] = distributedSidePort(entry.box, entry.side, index, group.length);
+      });
+    }
+    assignOrthogonalBendLanes(plans);
+
+    return plans;
+  }
+
+  function relationshipEndpointPlan(kind, from, to) {
+    if (kind !== "orthogonal") {
+      const startSide = sideFacingPoint(from, centerOf(to));
+      const endSide = sideFacingPoint(to, centerOf(from));
+      return {
+        pathKind: kind,
+        start: sidePort(from, startSide),
+        end: sidePort(to, endSide),
+        startSide,
+        endSide,
+        route: "direct"
+      };
+    }
+
+    const route = chooseOrthogonalRoute(from, to);
+    const fromCenter = centerOf(from);
+    const toCenter = centerOf(to);
+    if (route === "horizontalFirst") {
+      const movingRight = toCenter.x >= fromCenter.x;
+      const startSide = movingRight ? "right" : "left";
+      const endSide = movingRight ? "left" : "right";
+      return {
+        pathKind: kind,
+        start: sidePort(from, startSide),
+        end: sidePort(to, endSide),
+        startSide,
+        endSide,
+        route
+      };
+    }
+
+    const movingDown = toCenter.y >= fromCenter.y;
+    const startSide = movingDown ? "bottom" : "top";
+    const endSide = movingDown ? "top" : "bottom";
+    return {
+      pathKind: kind,
+      start: sidePort(from, startSide),
+      end: sidePort(to, endSide),
+      startSide,
+      endSide,
+      route
+    };
+  }
+
+  function reservePort(portGroups, elementId, box, side, toward, plan, endpoint) {
+    const key = `${elementId}:${side}`;
+    const group = portGroups.get(key) ?? [];
+    group.push({
+      box,
+      desired: side === "left" || side === "right" ? toward.y : toward.x,
+      endpoint,
+      order: group.length,
+      plan,
+      side
+    });
+    portGroups.set(key, group);
+  }
+
+  function assignOrthogonalBendLanes(plans) {
+    const horizontalSegments = [];
+    const verticalSegments = [];
+    for (const plan of plans.values()) {
+      if (plan.pathKind !== "orthogonal") {
+        continue;
+      }
+      if (plan.route === "horizontalFirst") {
+        plan.bendX = (plan.start.x + plan.end.x) / 2;
+        horizontalSegments.push({
+          axis: plan.bendX,
+          crossEnd: Math.max(plan.start.y, plan.end.y),
+          crossStart: Math.min(plan.start.y, plan.end.y),
+          plan
+        });
+      } else if (plan.route === "verticalFirst") {
+        plan.bendY = (plan.start.y + plan.end.y) / 2;
+        verticalSegments.push({
+          axis: plan.bendY,
+          crossEnd: Math.max(plan.start.x, plan.end.x),
+          crossStart: Math.min(plan.start.x, plan.end.x),
+          plan
+        });
+      }
+    }
+
+    assignSegmentLanes(horizontalSegments, "bendX");
+    assignSegmentLanes(verticalSegments, "bendY");
+  }
+
+  function assignSegmentLanes(segments, propertyName) {
+    const groups = overlappingSegmentGroups(segments);
+    for (const group of groups) {
+      if (group.length <= 1) {
+        continue;
+      }
+      group
+        .sort((a, b) => a.crossStart - b.crossStart || a.crossEnd - b.crossEnd || a.axis - b.axis)
+        .forEach((segment, index) => {
+          segment.plan[propertyName] = segment.axis + centeredLaneOffset(index, group.length, 16);
+        });
+    }
+  }
+
+  function overlappingSegmentGroups(segments) {
+    const groups = [];
+    const remaining = [...segments].sort((a, b) => a.axis - b.axis || a.crossStart - b.crossStart);
+    while (remaining.length) {
+      const group = [remaining.shift()];
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (let index = remaining.length - 1; index >= 0; index -= 1) {
+          if (group.some((candidate) => segmentsNeedSeparateLanes(candidate, remaining[index]))) {
+            group.push(remaining.splice(index, 1)[0]);
+            grew = true;
+          }
+        }
+      }
+      groups.push(group);
+    }
+    return groups;
+  }
+
+  function segmentsNeedSeparateLanes(a, b) {
+    return Math.abs(a.axis - b.axis) < 24 && rangesOverlap(a.crossStart, a.crossEnd, b.crossStart, b.crossEnd);
+  }
+
+  function rangesOverlap(startA, endA, startB, endB) {
+    return Math.min(endA, endB) - Math.max(startA, startB) > 8;
+  }
+
+  function centeredLaneOffset(index, count, gap) {
+    return (index - (count - 1) / 2) * gap;
+  }
+
   function relationshipEndpoints(kind, from, to) {
     if (kind !== "orthogonal") {
       return {
@@ -1224,6 +1323,18 @@
     return "horizontalFirst";
   }
 
+  function sideFacingPoint(box, point) {
+    const center = centerOf(box);
+    const dx = point.x - center.x;
+    const dy = point.y - center.y;
+    const xScale = Math.abs(dx) / (box.width / 2 || 1);
+    const yScale = Math.abs(dy) / (box.height / 2 || 1);
+    if (xScale >= yScale) {
+      return dx >= 0 ? "right" : "left";
+    }
+    return dy >= 0 ? "bottom" : "top";
+  }
+
   function sidePort(box, side) {
     const center = centerOf(box);
     if (side === "left") {
@@ -1238,13 +1349,35 @@
     return { x: center.x, y: box.y + box.height };
   }
 
-  function relationshipPath(kind, start, end, route = "direct") {
+  function distributedSidePort(box, side, index, count) {
+    if (count <= 1) {
+      return sidePort(box, side);
+    }
+
+    const isVerticalSide = side === "left" || side === "right";
+    const span = isVerticalSide ? box.height : box.width;
+    const padding = Math.min(22, Math.max(10, span * 0.2));
+    const usableSpan = Math.max(1, span - padding * 2);
+    const offset = padding + usableSpan * ((index + 1) / (count + 1));
+    if (side === "left") {
+      return { x: box.x, y: box.y + offset };
+    }
+    if (side === "right") {
+      return { x: box.x + box.width, y: box.y + offset };
+    }
+    if (side === "top") {
+      return { x: box.x + offset, y: box.y };
+    }
+    return { x: box.x + offset, y: box.y + box.height };
+  }
+
+  function relationshipPath(kind, start, end, route = "direct", plan = null) {
     if (kind === "orthogonal") {
       if (route === "verticalFirst") {
-        const midY = (start.y + end.y) / 2;
+        const midY = plan?.bendY ?? (start.y + end.y) / 2;
         return `M ${start.x} ${start.y} L ${start.x} ${midY} L ${end.x} ${midY} L ${end.x} ${end.y}`;
       }
-      const midX = (start.x + end.x) / 2;
+      const midX = plan?.bendX ?? (start.x + end.x) / 2;
       return `M ${start.x} ${start.y} L ${midX} ${start.y} L ${midX} ${end.y} L ${end.x} ${end.y}`;
     }
     if (kind === "curved") {
@@ -1287,48 +1420,52 @@
     return relationshipCount <= 3 || focusedRelationshipIds.has(relationship.id);
   }
 
-  function renderLocator(locator) {
+  function renderArtifactCitation(locator) {
     if (!locator) {
-      return el("p", { className: "locator", text: "No locator." });
+      return el("p", { className: "locator artifact-citation", text: "No file location." });
     }
-    const parts = [];
-    if (locator.kind === "workspacePath") {
-      parts.push(locator.path);
-    } else if (locator.kind === "fileUrl" || locator.kind === "url") {
+
+    const fileName = locatorFileName(locator);
+    const wrapper = el("p", { className: "locator artifact-citation" });
+    if (locator.kind === "fileUrl" || locator.kind === "url") {
       const href = locator.kind === "url" && locator.fragment ? `${locator.url}#${locator.fragment}` : locator.url;
-      const link = el("a", { href, text: href });
+      const link = el("a", { href, text: fileName });
       link.target = "_blank";
       link.rel = "noreferrer";
-      const wrapper = el("p", { className: "locator" });
-      wrapper.append(`${locator.kind}: `, link);
-      appendRange(wrapper, locator);
-      return wrapper;
+      wrapper.appendChild(link);
+    } else {
+      wrapper.append(fileName);
     }
-    const wrapper = el("p", { className: "locator", text: `${locator.kind}: ${parts.join(" ")}` });
-    appendRange(wrapper, locator);
+
+    if (locator.range) {
+      wrapper.append(` · lines ${locator.range.startLine}-${locator.range.endLine}`);
+    }
     return wrapper;
   }
 
-  function appendRange(wrapper, locator) {
-    if (locator.range) {
-      wrapper.append(` · lines ${locator.range.startLine}-${locator.range.endLine}`);
-      if (locator.range.startColumn || locator.range.endColumn) {
-        wrapper.append(` cols ${locator.range.startColumn ?? "?"}-${locator.range.endColumn ?? "?"}`);
+  function locatorFileName(locator) {
+    if (locator.path) {
+      return lastPathSegment(locator.path);
+    }
+    if (locator.url) {
+      try {
+        const url = new URL(locator.url, window.location.href);
+        return lastPathSegment(url.pathname) || url.hostname || locator.url;
+      } catch {
+        return lastPathSegment(locator.url);
       }
     }
-    if (locator.symbol) {
-      wrapper.append(` · ${locator.symbol}`);
-    }
+    return locator.kind || "Unknown source";
   }
 
-  function appendMetadata(parent, metadata) {
-    if (!metadata || !Object.keys(metadata).length) {
-      return;
+  function lastPathSegment(value) {
+    const trimmed = String(value).replace(/[#?].*$/, "").replace(/\/+$/, "");
+    const segment = trimmed.split("/").filter(Boolean).pop() || trimmed;
+    try {
+      return decodeURIComponent(segment);
+    } catch {
+      return segment;
     }
-    const details = el("details", { className: "metadata-details" });
-    details.appendChild(el("summary", { text: "Metadata" }));
-    details.appendChild(el("pre", { text: JSON.stringify(metadata, null, 2) }));
-    parent.appendChild(details);
   }
 
   function renderMarkdown(markdown) {
@@ -1580,11 +1717,6 @@
     return value === undefined ? "1" : String(clamp(Number(value), 0, 1));
   }
 
-  function resolveArtifactRefs(refs, artifacts) {
-    const byId = new Map(artifacts.map((artifact) => [artifact.id, artifact]));
-    return refs.map((ref) => byId.get(ref)).filter(Boolean);
-  }
-
   function wrapLabel(value, maxLength) {
     const words = value.split(/\s+/);
     const lines = [];
@@ -1629,7 +1761,7 @@
   }
 
   function emptySmall(text) {
-    return el("div", { className: "diagnostic-item", text });
+    return el("div", { className: "empty-small", text });
   }
 
   function isObject(value) {
