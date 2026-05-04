@@ -28,8 +28,8 @@ Explainer has three major pieces:
 
 This documentation is split into two complementary modes:
 
-- **Protocol exploration** explains the broader model, unresolved design questions, and renderer implications.
-- **Reference pages** document one protocol type at a time, including fields, constraints, examples, and open questions.
+- **Protocol exploration** explains the broader model, constraints, and renderer implications.
+- **Reference pages** document one protocol type at a time, including fields, constraints, examples, and schema details.
 
 The current priority is to clarify the model before freezing a concrete syntax. JSON, YAML, and generated language bindings can all represent the same underlying protocol once the contract stabilizes.
 

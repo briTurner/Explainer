@@ -1,0 +1,709 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://explainer.dev/schema/explainer.schema.json",
+  "title": "Explainer Document",
+  "description": "Canonical schema for v1 Explainer documents.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "metadata", "scenes"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "$ref": "#/$defs/DocumentMetadata"
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/Scene"
+      }
+    }
+  },
+  "$defs": {
+    "DocumentMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "Scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "anyOf": [
+        {
+          "required": ["narration"]
+        },
+        {
+          "required": ["visual"]
+        }
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "narration": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/NarrationBlock"
+          }
+        },
+        "visual": {
+          "$ref": "#/$defs/Visual"
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Artifact"
+          }
+        },
+        "focus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FocusTarget"
+          }
+        },
+        "animations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Animation"
+          }
+        }
+      }
+    },
+    "NarrationBlock": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/TextNarration"
+        },
+        {
+          "$ref": "#/$defs/MarkdownNarration"
+        },
+        {
+          "$ref": "#/$defs/StepNarration"
+        }
+      ]
+    },
+    "TextNarration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text"],
+      "properties": {
+        "kind": {
+          "const": "text"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "MarkdownNarration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "markdown"],
+      "properties": {
+        "kind": {
+          "const": "markdown"
+        },
+        "markdown": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "StepNarration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "steps"],
+      "properties": {
+        "kind": {
+          "const": "steps"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "Visual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "elements"],
+      "properties": {
+        "kind": {
+          "enum": ["sequence", "flow", "graph", "tree", "timeline", "table", "freeform"]
+        },
+        "layout": {
+          "$ref": "#/$defs/Layout"
+        },
+        "viewport": {
+          "$ref": "#/$defs/Viewport"
+        },
+        "elements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/VisualElement"
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/VisualRelationship"
+          }
+        }
+      }
+    },
+    "Layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "enum": ["auto", "layered", "force", "grid", "timeline", "manual"]
+        },
+        "direction": {
+          "enum": ["leftToRight", "rightToLeft", "topToBottom", "bottomToTop"]
+        },
+        "bounds": {
+          "$ref": "#/$defs/Rect"
+        }
+      }
+    },
+    "Viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": ["fitAll", "fitSelection", "manual"]
+        },
+        "targetIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "padding": {
+          "type": "number",
+          "minimum": 0
+        },
+        "center": {
+          "$ref": "#/$defs/Point"
+        },
+        "zoom": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "VisualElement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "rectangle",
+            "roundedRectangle",
+            "ellipse",
+            "circle",
+            "diamond",
+            "triangle",
+            "hexagon",
+            "cylinder",
+            "cloud",
+            "document",
+            "note",
+            "container",
+            "text",
+            "image",
+            "icon",
+            "table",
+            "custom"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "geometry": {
+          "$ref": "#/$defs/Geometry"
+        },
+        "appearance": {
+          "$ref": "#/$defs/Appearance"
+        },
+        "artifactRefs": {
+          "$ref": "#/$defs/ArtifactRefs"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    "VisualRelationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "path": {
+          "enum": ["straight", "curved", "orthogonal"]
+        },
+        "line": {
+          "$ref": "#/$defs/LineAppearance"
+        },
+        "startDecoration": {
+          "$ref": "#/$defs/RelationshipDecoration"
+        },
+        "endDecoration": {
+          "$ref": "#/$defs/RelationshipDecoration"
+        },
+        "artifactRefs": {
+          "$ref": "#/$defs/ArtifactRefs"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    "Artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "locator"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "sourceFile",
+            "textFile",
+            "document",
+            "image",
+            "video",
+            "log",
+            "trace",
+            "test",
+            "commit",
+            "pullRequest",
+            "url",
+            "generated"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "locator": {
+          "$ref": "#/$defs/ArtifactLocator"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    "ArtifactLocator": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/WorkspacePathLocator"
+        },
+        {
+          "$ref": "#/$defs/FileUrlLocator"
+        },
+        {
+          "$ref": "#/$defs/ExternalUrlLocator"
+        }
+      ]
+    },
+    "WorkspacePathLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "path"],
+      "properties": {
+        "kind": {
+          "const": "workspacePath"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "range": {
+          "$ref": "#/$defs/TextRange"
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "FileUrlLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "url"],
+      "properties": {
+        "kind": {
+          "const": "fileUrl"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "range": {
+          "$ref": "#/$defs/TextRange"
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ExternalUrlLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "url"],
+      "properties": {
+        "kind": {
+          "const": "url"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "fragment": {
+          "type": "string"
+        }
+      }
+    },
+    "FocusTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target"],
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/FocusTargetRef"
+        },
+        "role": {
+          "enum": ["primary", "secondary", "context"]
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "FocusTargetRef": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ElementRef"
+        },
+        {
+          "$ref": "#/$defs/RelationshipRef"
+        }
+      ]
+    },
+    "ElementRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": {
+          "const": "element"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "RelationshipRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": {
+          "const": "relationship"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "Animation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "target"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "reveal",
+            "hide",
+            "pulse",
+            "spotlight",
+            "tracePath",
+            "zoom",
+            "pan",
+            "expand",
+            "collapse",
+            "sequence"
+          ]
+        },
+        "target": {
+          "$ref": "#/$defs/AnimationTarget"
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delayMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "easing": {
+          "type": "string"
+        },
+        "repeat": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "const": "infinite"
+            }
+          ]
+        },
+        "direction": {
+          "enum": ["forward", "reverse", "alternate"]
+        },
+        "onComplete": {
+          "enum": ["hold", "reset"]
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    "AnimationTarget": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ElementRef"
+        },
+        {
+          "$ref": "#/$defs/RelationshipRef"
+        }
+      ]
+    },
+    "TextRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startLine", "endLine"],
+      "properties": {
+        "startLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "startColumn": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endColumn": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "ArtifactRefs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "Geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "Rect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "Point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    },
+    "Appearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tone": {
+          "enum": ["default", "muted", "primary", "success", "warning", "danger"]
+        },
+        "emphasis": {
+          "enum": ["none", "low", "medium", "high"]
+        },
+        "variant": {
+          "type": "string"
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "collapsed": {
+          "type": "boolean"
+        },
+        "badges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "LineAppearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pattern": {
+          "enum": ["solid", "dashed", "dotted"]
+        },
+        "weight": {
+          "enum": ["thin", "regular", "thick"]
+        },
+        "tone": {
+          "enum": ["default", "muted", "primary", "success", "warning", "danger"]
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "RelationshipDecoration": {
+      "enum": ["none", "arrow", "circle", "diamond", "bar"]
+    }
+  }
+}

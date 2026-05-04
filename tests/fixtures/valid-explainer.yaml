@@ -1,12 +1,3 @@
-# Codebase Walkthrough
-
-This example sketches an explanation for a request authentication path.
-
-It uses a sequence visual, source-file artifacts, focus targets, and trace-path animation.
-
-## Sketch
-
-```yaml
 schemaVersion: 0.1.0
 metadata:
   title: Request Authentication Walkthrough
@@ -49,4 +40,10 @@ scenes:
           kind: element
           id: api-controller
         role: primary
-```
+    animations:
+      - kind: tracePath
+        target:
+          kind: relationship
+          id: client-to-api
+        durationMs: 700
+        onComplete: hold

@@ -2,7 +2,7 @@
 
 The Explainer protocol is a domain-neutral model for describing scene-based explanations.
 
-This section is for exploring concepts, constraints, and open questions before the syntax is finalized.
+This section is for exploring concepts, constraints, and resolved design direction before the syntax is finalized.
 
 ## Layers
 

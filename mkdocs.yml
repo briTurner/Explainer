@@ -54,6 +54,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Auditor: auditor.md
   - Protocol:
       - protocol/index.md
       - Model: protocol/model.md
@@ -82,7 +83,7 @@ nav:
   - Examples:
       - examples/index.md
       - Codebase Walkthrough: examples/codebase-walkthrough.md
-      - Artifact-Led Explanation: examples/artifact-led-explanation.md
+      - Narration-Led Explanation: examples/artifact-led-explanation.md
       - Non-Code Domain: examples/non-code-domain.md
   - Generation:
       - generation/index.md

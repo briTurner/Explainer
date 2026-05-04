@@ -1,21 +1,25 @@
 # Stable IDs
 
-Stable IDs are how Explainer preserves conceptual continuity across scenes.
+## Status
 
-## Proposed Direction
+Accepted.
 
-When the same ID appears in neighboring scenes, the renderer may treat it as the same conceptual object.
+## Context
 
-When an ID appears for the first time, the object enters. When an ID disappears, the object exits.
+Explainer uses complete scene snapshots. Stable IDs give renderers a simple mechanical way to preserve continuity across neighboring snapshots without adding an explicit transition language.
 
-## Rationale
+## Decision
+
+IDs are scoped by scene and entity kind.
+
+When the same ID appears in neighboring scenes for the same entity kind, the renderer treats it as the same entity. When an ID appears for the first time, the entity enters. When an ID disappears, the entity exits.
+
+The protocol does not reserve ID prefixes in v1.
+
+## Consequences
 
 Stable IDs let the document express continuity without requiring an explicit transition language.
 
 They also make visual elements, relationships, artifacts, and focus targets easier to inspect and link.
 
-## Open Questions
-
-- Should IDs be globally unique across a document or scoped by object kind?
-- Should the protocol reserve ID prefixes?
-- Should renderers warn when reused IDs appear to represent different concepts?
+Renderer warnings for suspicious ID reuse are outside the protocol. Renderers mechanically interpret same-ID reuse as continuity.

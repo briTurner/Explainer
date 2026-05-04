@@ -2,16 +2,12 @@
 
 Examples show how protocol concepts work in context.
 
-They are allowed to be exploratory while the protocol is still taking shape. Once the schema exists, examples should be validated as part of CI.
+They are allowed to be exploratory while the protocol is still taking shape. YAML is preferred when it improves readability. Once the schema exists, examples should be validated as part of CI.
+
+Reference pages should eventually link to examples that use the documented type. Invalid examples should live beside valid examples in clearly marked `Invalid Examples` or `Anti-Examples` sections.
 
 ## Example Set
 
 - [Codebase Walkthrough](codebase-walkthrough.md)
-- [Artifact-Led Explanation](artifact-led-explanation.md)
+- [Narration-Led Explanation](artifact-led-explanation.md)
 - [Non-Code Domain](non-code-domain.md)
-
-## Open Questions
-
-- Should examples use YAML for readability?
-- Should every reference page link to at least one example?
-- Should invalid examples live beside valid examples?

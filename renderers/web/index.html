@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Explainer Web Renderer</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="stage-column">
+        <header class="toolbar" aria-label="Renderer controls">
+          <section class="document-strip" aria-label="Document">
+            <div class="brand-mark" aria-hidden="true">E</div>
+            <div class="document-copy">
+              <p class="eyebrow">Explainer</p>
+              <p id="document-title" class="document-title">No document loaded</p>
+              <p id="document-description" class="document-description">Load an Explainer document to begin.</p>
+              <div id="document-tags" class="tag-row"></div>
+            </div>
+          </section>
+          <div class="scene-navigation">
+            <nav id="scene-list" class="scene-list" aria-label="Scenes"></nav>
+            <div class="toolbar-group scene-controls">
+              <button id="previous-scene" type="button" class="icon-button" title="Previous scene" aria-label="Previous scene">
+                <span aria-hidden="true">‹</span>
+              </button>
+              <button id="next-scene" type="button" class="icon-button" title="Next scene" aria-label="Next scene">
+                <span aria-hidden="true">›</span>
+              </button>
+              <span id="scene-counter" class="scene-counter">0 / 0</span>
+            </div>
+          </div>
+          <div class="toolbar-group file-actions">
+            <label class="file-control">
+              <input id="document-file" type="file" accept=".json,.yaml,.yml,application/json,text/yaml,text/x-yaml">
+              <span>Load File</span>
+            </label>
+            <button id="load-sample" type="button">Default</button>
+            <button id="toggle-input" type="button">Paste</button>
+          </div>
+        </header>
+
+        <section id="input-panel" class="input-panel" hidden>
+          <textarea id="document-input" spellcheck="false" aria-label="Explainer document input"></textarea>
+          <div class="input-actions">
+            <button id="render-input" type="button">Render Document</button>
+            <p>Accepts canonical JSON or plain YAML mappings/lists.</p>
+          </div>
+        </section>
+
+        <section class="scene-content">
+          <section class="narration-band" aria-label="Scene narration">
+            <div class="scene-heading">
+              <p id="scene-kicker" class="eyebrow">Scene</p>
+              <h2 id="scene-title">Load a document</h2>
+            </div>
+            <div id="narration-panel" class="narration-stack"></div>
+          </section>
+
+          <section class="stage-grid">
+            <article class="visual-panel" aria-label="Scene visual">
+              <div id="visual-stage" class="visual-stage"></div>
+            </article>
+
+            <aside class="artifact-viewer" aria-label="Artifact viewer">
+              <h3>Artifacts</h3>
+              <div id="artifact-panel" class="artifact-stack"></div>
+            </aside>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="./default-document.js"></script>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

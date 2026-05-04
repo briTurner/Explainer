@@ -23,7 +23,7 @@ type DocumentMetadata = {
 
 ### id
 
-Optional stable identifier for the document.
+Optional stable identifier for the document. Systems that persist or share documents may require IDs at their own boundaries, but the core protocol does not.
 
 ### title
 
@@ -35,26 +35,22 @@ Short summary of what the explanation covers.
 
 ### author
 
-The human, agent, or system that authored the document.
+The human, agent, or system that authored the document. `author` is a simple string in v1.
 
 ### createdAt
 
-Creation timestamp.
+Creation timestamp. If present, this must be an ISO 8601 string.
 
 ### updatedAt
 
-Last update timestamp.
+Last update timestamp. If present, this must be an ISO 8601 string.
 
 ### domain
 
-Descriptive domain label such as `codebase`, `debugging`, `architecture`, `operations`, or `economics`.
+Free-form descriptive domain label such as `codebase`, `debugging`, `architecture`, `operations`, or `economics`.
+
+Domain values are descriptive, not behavioral. Documentation may recommend common values, but the protocol does not require a fixed vocabulary.
 
 ### tags
 
 Search and grouping labels.
-
-## Open Questions
-
-- Should timestamps require ISO 8601?
-- Should `domain` be a free-form string or a recommended vocabulary?
-- Should `author` be structured instead of a string?

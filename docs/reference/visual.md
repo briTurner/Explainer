@@ -2,7 +2,7 @@
 
 `Visual` describes the primary visual representation for a scene.
 
-Some explanations may omit visuals and rely on narration plus artifacts.
+Some explanations may omit visuals and rely on narration plus artifacts. If a scene includes `visual`, then `visual.elements` must be non-empty.
 
 ## Shape
 
@@ -22,7 +22,9 @@ type Visual = {
 
 The visual form the renderer should use as interpretation guidance.
 
-Current candidate values: `uml`, `sequence`, `flow`, `graph`, `tree`, `timeline`, `table`, `freeform`.
+V1 values: `sequence`, `flow`, `graph`, `tree`, `timeline`, `table`, `freeform`.
+
+`uml` is not a v1 visual kind. UML can be treated as a style, convention, or future specialized form rather than a single generic visual structure.
 
 ### layout
 
@@ -34,7 +36,7 @@ Optional framing guidance for the visible region of the scene.
 
 ### elements
 
-Visual objects in the scene.
+Non-empty list of visual objects in the scene.
 
 Type: [`VisualElement[]`](visual-element.md)
 
@@ -44,8 +46,4 @@ Visual connectors between elements.
 
 Type: [`VisualRelationship[]`](visual-relationship.md)
 
-## Open Questions
-
-- Which visual kinds belong in v1?
-- Should `elements` be required to be non-empty?
-- Should layout and viewport be split into separate reference types?
+`layout` and `viewport` are nested structured values inside `Visual`; they should also be documented as separate reference types as the schema matures.

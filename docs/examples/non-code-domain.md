@@ -4,6 +4,8 @@ Explainer is intended to be domain-neutral.
 
 This sketch uses the same scene, visual, artifact, and focus concepts to explain a business process.
 
+Examples may describe domain-specific conventions in prose, but those conventions are not protocol primitives. Metadata domain vocabulary remains descriptive guidance, not protocol behavior.
+
 ## Sketch
 
 ```yaml
@@ -39,12 +41,8 @@ scenes:
           to: manager-review
           label: over threshold
     focus:
-      - element: manager-review
+      - target:
+          kind: element
+          id: manager-review
         role: primary
 ```
-
-## Open Questions
-
-- Which visual kinds are sufficiently domain-neutral?
-- Should examples define domain-specific conventions outside the protocol?
-- Should metadata support domain-specific vocabularies?

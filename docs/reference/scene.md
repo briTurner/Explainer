@@ -4,6 +4,8 @@
 
 It is a complete snapshot of narration, visual state, supporting artifacts, focus, and within-scene animation.
 
+A scene must include at least one of `narration` or `visual`. Artifacts are scene-local supporting evidence and are not sufficient by themselves to make a scene explanatory.
+
 ## Shape
 
 ```ts
@@ -42,7 +44,7 @@ Type: [`Visual`](visual.md)
 
 ### artifacts
 
-Supporting evidence attached to the scene.
+Scene-local supporting evidence attached to the scene.
 
 Type: [`Artifact[]`](artifact.md)
 
@@ -61,11 +63,7 @@ Type: [`Animation[]`](animation.md)
 ## Constraints
 
 - Scenes should be renderable without resolving a global entity registry.
-- Any element referenced by `focus` should exist in the same scene's visual.
+- Any target referenced by `focus` should exist in the same scene's visual.
 - Any animation target should refer to a visual element or relationship in the same scene.
-
-## Open Questions
-
-- Should `title`, `narration`, or `visual` become required?
-- Should artifacts be scene-local or document-level with scene references?
-- Should a scene have a declared pedagogical purpose?
+- Everything inside a scene is scene-local.
+- Scenes do not have declared prerequisites, learning objectives, or pedagogical purpose fields in v1.
