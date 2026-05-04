@@ -6,7 +6,7 @@ A `Scene` is the canonical unit of explanation. It is comparable to a slide, but
 type Scene = {
   id: string;
   title?: string;
-  narration?: NarrationBlock[];
+  narration?: NarrationBlock;
   visual?: Visual;
   artifacts?: Artifact[];
   focus?: FocusTarget[];

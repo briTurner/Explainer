@@ -559,6 +559,8 @@ def escape_pointer_part(part: Any) -> str:
 def clean_schema_message(error: jsonschema.ValidationError) -> str:
     if error.validator == "anyOf" and list(error.absolute_path)[:1] == ["scenes"]:
         return "Scene must include at least one of 'narration' or 'visual'."
+    if list(error.absolute_path)[-1:] == ["narration"]:
+        return "Scene narration must be a single NarrationBlock object."
     return error.message
 
 
@@ -580,6 +582,8 @@ def schema_suggestion(error: jsonschema.ValidationError) -> str:
     if validator in {"oneOf", "anyOf"}:
         if validator == "anyOf" and list(error.absolute_path)[:1] == ["scenes"]:
             return "Add narration or visual to the scene. Artifacts alone are supporting evidence, not an explanation."
+        if list(error.absolute_path)[-1:] == ["narration"]:
+            return "Use one NarrationBlock object, not an array of narration blocks."
         return "Make the value match exactly one valid protocol variant."
     return "Update this value to match the Explainer JSON Schema."
 

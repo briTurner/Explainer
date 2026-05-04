@@ -9,7 +9,7 @@ document, and step through the document's scene snapshots.
 The renderer consumes an `ExplanationDocument` and presents:
 
 - document metadata and ordered scenes,
-- `text`, `markdown`, and `steps` narration blocks,
+- `text`, `markdown`, and `steps` narration,
 - all current visual kinds through SVG layout strategies,
 - all current visual element kinds,
 - visual relationships with path, line, and decoration options,

@@ -17,8 +17,8 @@ scenes:
   - id: failing-test
     title: The regression is visible in the parser test
     narration:
-      - kind: text
-        text: The failing assertion shows that escaped delimiters are being split as ordinary separators.
+      kind: text
+      text: The failing assertion shows that escaped delimiters are being split as ordinary separators.
     artifacts:
       - id: parser-test
         kind: sourceFile

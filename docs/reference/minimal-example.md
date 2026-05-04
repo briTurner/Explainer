@@ -15,12 +15,10 @@ This JSON form is illustrative, not yet a frozen canonical syntax. During protoc
     {
       "id": "request-enters-api",
       "title": "The request enters the API layer",
-      "narration": [
-        {
-          "kind": "text",
-          "text": "The request first reaches the API controller, which extracts the token before delegating validation."
-        }
-      ],
+      "narration": {
+        "kind": "text",
+        "text": "The request first reaches the API controller, which extracts the token before delegating validation."
+      },
       "visual": {
         "kind": "sequence",
         "layout": {

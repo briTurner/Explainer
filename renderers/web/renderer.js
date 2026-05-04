@@ -15,16 +15,10 @@
       {
         id: "request-enters-api",
         title: "The request enters the API layer",
-        narration: [
-          {
-            kind: "text",
-            text: "The request reaches the API controller, which extracts the token before delegating validation."
-          },
-          {
-            kind: "steps",
-            steps: ["Client sends GET /profile.", "Controller reads the bearer token.", "Validation moves to the auth service."]
-          }
-        ],
+        narration: {
+          kind: "steps",
+          steps: ["Client sends GET /profile.", "Controller reads the bearer token.", "Validation moves to the auth service."]
+        },
         visual: {
           kind: "sequence",
           layout: { direction: "leftToRight" },
@@ -455,24 +449,27 @@
     }
 
     renderNarration(scene) {
-      const blocks = (scene.narration ?? []).map((block) => {
-        const wrapper = el("div", { className: "narration-block" });
-        if (block.kind === "text") {
-          wrapper.textContent = block.text;
-        } else if (block.kind === "markdown") {
-          wrapper.appendChild(renderMarkdown(block.markdown));
-        } else if (block.kind === "steps") {
-          const list = el("ol");
-          for (const step of block.steps) {
-            list.appendChild(el("li", { text: step }));
-          }
-          wrapper.appendChild(list);
-        } else {
-          wrapper.textContent = `Unsupported narration block: ${block.kind}`;
+      const block = scene.narration;
+      if (!block) {
+        replaceChildren(this.dom["narration-panel"], emptySmall("No narration for this scene."));
+        return;
+      }
+
+      const wrapper = el("div", { className: "narration-block" });
+      if (block.kind === "text") {
+        wrapper.textContent = block.text;
+      } else if (block.kind === "markdown") {
+        wrapper.appendChild(renderMarkdown(block.markdown));
+      } else if (block.kind === "steps") {
+        const list = el("ol");
+        for (const step of block.steps ?? []) {
+          list.appendChild(el("li", { text: step }));
         }
-        return wrapper;
-      });
-      replaceChildren(this.dom["narration-panel"], ...blocks.length ? blocks : [emptySmall("No narration for this scene.")]);
+        wrapper.appendChild(list);
+      } else {
+        wrapper.textContent = `Unsupported narration block: ${block.kind}`;
+      }
+      replaceChildren(this.dom["narration-panel"], wrapper);
     }
 
     async renderArtifacts(scene) {
@@ -561,7 +558,7 @@
       if (!scene.narration && !scene.visual) {
         diagnostics.push(diagnostic("empty_scene", scenePath, "Scene must include narration or visual content."));
       }
-      validateNarration(scene.narration ?? [], scenePath, diagnostics);
+      validateNarration(scene.narration, scenePath, diagnostics);
       validateArtifacts(scene.artifacts ?? [], scenePath, diagnostics);
       validateVisual(scene, scenePath, diagnostics);
     });
@@ -569,11 +566,16 @@
   }
 
   function validateNarration(narration, scenePath, diagnostics) {
-    narration.forEach((block, index) => {
-      if (!PROTOCOL.narrationKinds.has(block.kind)) {
-        diagnostics.push(diagnostic("unsupported_narration_kind", `${scenePath}/narration/${index}/kind`, `Unsupported narration kind "${block.kind}".`));
-      }
-    });
+    if (narration === undefined) {
+      return;
+    }
+    if (!isObject(narration)) {
+      diagnostics.push(diagnostic("invalid_narration", `${scenePath}/narration`, "Scene narration must be a single NarrationBlock object."));
+      return;
+    }
+    if (!PROTOCOL.narrationKinds.has(narration.kind)) {
+      diagnostics.push(diagnostic("unsupported_narration_kind", `${scenePath}/narration/kind`, `Unsupported narration kind "${narration.kind}".`));
+    }
   }
 
   function validateArtifacts(artifacts, scenePath, diagnostics) {

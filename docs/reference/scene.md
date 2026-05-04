@@ -12,7 +12,7 @@ A scene must include at least one of `narration` or `visual`. Artifacts are scen
 type Scene = {
   id: string;
   title?: string;
-  narration?: NarrationBlock[];
+  narration?: NarrationBlock;
   visual?: Visual;
   artifacts?: Artifact[];
   focus?: FocusTarget[];
@@ -32,9 +32,9 @@ Optional human-readable scene title.
 
 ### narration
 
-Human-readable explanation blocks for the scene.
+Human-readable explanation for the scene.
 
-Type: [`NarrationBlock[]`](narration-block.md)
+Type: [`NarrationBlock`](narration-block.md)
 
 ### visual
 

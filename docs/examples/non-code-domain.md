@@ -17,8 +17,8 @@ scenes:
   - id: refund-request-created
     title: A refund request enters review
     narration:
-      - kind: text
-        text: A support agent creates a refund request, which moves into manager review when the refund exceeds the automatic approval threshold.
+      kind: text
+      text: A support agent creates a refund request, which moves into manager review when the refund exceeds the automatic approval threshold.
     visual:
       kind: flow
       elements:

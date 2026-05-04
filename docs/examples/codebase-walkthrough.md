@@ -15,8 +15,8 @@ scenes:
   - id: request-enters-api
     title: The request enters the API layer
     narration:
-      - kind: text
-        text: The request reaches the API controller, which extracts the token before delegating validation.
+      kind: text
+      text: The request reaches the API controller, which extracts the token before delegating validation.
     visual:
       kind: sequence
       elements:
