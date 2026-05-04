@@ -505,7 +505,7 @@
     }
 
     async fetchArtifactText(locator) {
-      const url = artifactUrl(locator);
+      const url = artifactPreviewUrl(locator);
       if (!url) {
         throw new Error("No readable text location.");
       }
@@ -514,7 +514,8 @@
       }
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`Could not load ${locatorFileName(locator)}.`);
+        const message = await response.text().catch(() => "");
+        throw new Error(message || `Could not load ${locatorFileName(locator)}.`);
       }
       const text = await response.text();
       this.artifactTextCache.set(url, text);
@@ -1529,9 +1530,13 @@
     return { startLine, endLine };
   }
 
-  function artifactUrl(locator) {
+  function artifactPreviewUrl(locator) {
     if (!locator) {
       return null;
+    }
+    const localPath = localPathForLocator(locator);
+    if (localPath && shouldUseLocalArtifactEndpoint()) {
+      return `/__explainer_artifact?path=${encodeURIComponent(localPath)}`;
     }
     if (locator.kind === "filePath" && locator.path) {
       return filePathToUrl(locator.path);
@@ -1543,6 +1548,36 @@
       return locator.url;
     }
     return null;
+  }
+
+  function localPathForLocator(locator) {
+    if (locator.kind === "filePath" && locator.path) {
+      return locator.path;
+    }
+    if (locator.kind === "fileUrl" && locator.url) {
+      return fileUrlToPath(locator.url);
+    }
+    return null;
+  }
+
+  function shouldUseLocalArtifactEndpoint() {
+    return window.location.protocol === "http:" || window.location.protocol === "https:";
+  }
+
+  function fileUrlToPath(url) {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "file:") {
+        return null;
+      }
+      const path = decodeURIComponent(parsed.pathname);
+      if (/^\/[A-Za-z]:[\\/]/.test(path)) {
+        return path.slice(1);
+      }
+      return path;
+    } catch {
+      return null;
+    }
   }
 
   function filePathToUrl(path) {

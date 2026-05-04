@@ -1,4 +1,4 @@
-.PHONY: docs-serve docs-build audit-valid audit-invalid
+.PHONY: docs-serve docs-build audit-valid audit-invalid web-renderer
 
 docs-serve:
 	NO_MKDOCS_2_WARNING=true .venv/bin/mkdocs serve
@@ -12,3 +12,6 @@ audit-valid:
 audit-invalid:
 	.venv/bin/python tools/explainer_audit.py tests/fixtures/invalid-schema-explainer.yaml || true
 	.venv/bin/python tools/explainer_audit.py tests/fixtures/invalid-semantic-explainer.yaml || true
+
+web-renderer:
+	node renderers/web/server.mjs
