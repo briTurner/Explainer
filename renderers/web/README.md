@@ -23,6 +23,7 @@ of being silently dropped.
 ## Files
 
 - `index.html` hosts the renderer and document input controls.
+- `default-document.js` embeds the default document shown at startup.
 - `renderer.js` contains the protocol-aware rendering and validation logic.
 - `styles.css` defines the web presentation.
 

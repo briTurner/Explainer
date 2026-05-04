@@ -142,7 +142,7 @@
       this.positionsById = new Map();
       this.bindDom();
       this.bindEvents();
-      this.loadDocument(SAMPLE_DOCUMENT);
+      this.loadDefaultDocument();
     }
 
     bindDom() {
@@ -175,7 +175,7 @@
     bindEvents() {
       this.dom["previous-scene"].addEventListener("click", () => this.goToScene(this.sceneIndex - 1));
       this.dom["next-scene"].addEventListener("click", () => this.goToScene(this.sceneIndex + 1));
-      this.dom["load-sample"].addEventListener("click", () => this.loadDocument(SAMPLE_DOCUMENT));
+      this.dom["load-sample"].addEventListener("click", () => this.loadDefaultDocument());
       this.dom["toggle-input"].addEventListener("click", () => {
         this.dom["input-panel"].hidden = !this.dom["input-panel"].hidden;
       });
@@ -192,6 +192,14 @@
           this.goToScene(this.sceneIndex + 1);
         }
       });
+    }
+
+    loadDefaultDocument() {
+      if (window.ExplainerDefaultDocumentYaml) {
+        this.loadText(window.ExplainerDefaultDocumentYaml, "default document");
+        return;
+      }
+      this.loadDocument(SAMPLE_DOCUMENT);
     }
 
     async loadFile(event) {
@@ -258,7 +266,8 @@
           className: `scene-tab${index === this.sceneIndex ? " active" : ""}`,
           type: "button"
         });
-        button.textContent = `${index + 1}. ${scene.title || scene.id}`;
+        button.textContent = index === this.sceneIndex ? `${index + 1}. ${scene.title || scene.id}` : String(index + 1);
+        button.title = scene.title || scene.id;
         button.addEventListener("click", () => this.goToScene(index));
         return button;
       });
@@ -313,13 +322,19 @@
       appendDefs(svg);
 
       const focusClasses = buildFocusClassMap(scene.focus ?? []);
+      const focusedRelationshipIds = new Set(
+        (scene.focus ?? [])
+          .filter((focus) => focus.target.kind === "relationship")
+          .map((focus) => focus.target.id)
+      );
       const focusIds = new Set(Array.from(focusClasses.keys()));
       const hasFocus = focusIds.size > 0;
       const relationshipsLayer = svgEl("g", { class: "relationships-layer" });
       const elementsLayer = svgEl("g", { class: "elements-layer" });
 
-      for (const relationship of visual.relationships ?? []) {
-        const node = this.renderRelationship(relationship, focusClasses, hasFocus);
+      for (const [relationshipIndex, relationship] of (visual.relationships ?? []).entries()) {
+        const showLabel = shouldShowRelationshipLabel(visual, relationship, focusedRelationshipIds);
+        const node = this.renderRelationship(relationship, focusClasses, hasFocus, relationshipIndex, showLabel);
         relationshipsLayer.appendChild(node);
         this.relationshipsById.set(relationship.id, relationship);
       }
@@ -372,7 +387,7 @@
       return group;
     }
 
-    renderRelationship(relationship, focusClasses, hasFocus) {
+    renderRelationship(relationship, focusClasses, hasFocus, relationshipIndex = 0, showLabel = true) {
       const from = this.positionsById.get(relationship.from);
       const to = this.positionsById.get(relationship.to);
       const groupClasses = [
@@ -403,11 +418,11 @@
         return group;
       }
 
-      const start = edgePoint(from, centerOf(to));
-      const end = edgePoint(to, centerOf(from));
+      const pathKind = relationship.path ?? defaultRelationshipPath(this.currentScene()?.visual, from, to);
+      const { start, end, route } = relationshipEndpoints(pathKind, from, to);
       const path = svgEl("path", {
         class: "relationship-line",
-        d: relationshipPath(relationship.path, start, end),
+        d: relationshipPath(pathKind, start, end, route),
         "stroke-width": lineWeight(relationship.line?.weight),
         "stroke-dasharray": lineDash(relationship.line?.pattern),
         "marker-start": markerUrl(relationship.startDecoration),
@@ -415,18 +430,9 @@
       });
       group.appendChild(path);
 
-      if (relationship.label) {
-        const mid = relationshipMidpoint(relationship.path, start, end);
-        const width = Math.max(44, relationship.label.length * 7 + 18);
-        group.appendChild(svgEl("rect", {
-          class: "relationship-label-bg",
-          x: mid.x - width / 2,
-          y: mid.y - 12,
-          width,
-          height: 24,
-          rx: 4
-        }));
-        group.appendChild(svgEl("text", { class: "relationship-label", x: mid.x, y: mid.y }, relationship.label));
+      if (relationship.label && showLabel) {
+        const mid = relationshipMidpoint(pathKind, start, end, relationshipIndex);
+        addRelationshipLabel(group, relationship.label, mid);
       }
 
       return group;
@@ -700,7 +706,7 @@
   function layoutElements(visual) {
     const elements = visual.elements ?? [];
     const layout = visual.layout ?? {};
-    const bounds = layout.bounds ?? { x: 40, y: 40, width: 920, height: 560 };
+    const bounds = layout.bounds ?? defaultBounds(elements.length);
     const positions = new Map();
     const manual = layout.strategy === "manual" || elements.some((item) => item.geometry?.x !== undefined || item.geometry?.y !== undefined);
 
@@ -712,7 +718,9 @@
     }
 
     const direction = layout.direction ?? defaultDirection(visual.kind);
-    if (visual.kind === "timeline") {
+    if (layout.strategy === "layered" || layout.strategy === "auto" && ["graph", "flow"].includes(visual.kind)) {
+      layoutLayered(elements, visual.relationships ?? [], positions, bounds, direction);
+    } else if (visual.kind === "timeline") {
       layoutTimeline(elements, positions, bounds);
     } else if (visual.kind === "tree") {
       layoutTree(elements, visual.relationships ?? [], positions, bounds, direction);
@@ -727,8 +735,8 @@
   }
 
   function normalizeBox(geometry = {}, bounds) {
-    const width = geometry.width ?? 150;
-    const height = geometry.height ?? 84;
+    const width = geometry.width ?? 170;
+    const height = geometry.height ?? 86;
     return {
       x: geometry.x ?? bounds.x,
       y: geometry.y ?? bounds.y,
@@ -737,13 +745,22 @@
     };
   }
 
+  function defaultBounds(elementCount) {
+    return {
+      x: 40,
+      y: 40,
+      width: Math.max(980, elementCount * 190),
+      height: Math.max(580, Math.ceil(elementCount / 2) * 150)
+    };
+  }
+
   function layoutLinear(elements, positions, bounds, direction) {
     const horizontal = direction === "leftToRight" || direction === "rightToLeft";
     const count = Math.max(elements.length, 1);
     elements.forEach((elementObject, index) => {
       const order = direction === "rightToLeft" || direction === "bottomToTop" ? count - index - 1 : index;
-      const width = elementObject.geometry?.width ?? 150;
-      const height = elementObject.geometry?.height ?? 84;
+      const width = elementObject.geometry?.width ?? 220;
+      const height = elementObject.geometry?.height ?? 104;
       const x = horizontal
         ? bounds.x + ((bounds.width - width) * (order + 0.5)) / count - width / 2
         : bounds.x + bounds.width / 2 - width / 2;
@@ -757,8 +774,8 @@
   function layoutTimeline(elements, positions, bounds) {
     const count = Math.max(elements.length, 1);
     elements.forEach((elementObject, index) => {
-      const width = elementObject.geometry?.width ?? 138;
-      const height = elementObject.geometry?.height ?? 74;
+      const width = elementObject.geometry?.width ?? 210;
+      const height = elementObject.geometry?.height ?? 96;
       positions.set(elementObject.id, {
         x: bounds.x + ((bounds.width - width) * (index + 0.5)) / count - width / 2,
         y: bounds.y + bounds.height / 2 - height / 2 + (index % 2 === 0 ? -70 : 70),
@@ -773,8 +790,8 @@
     const cellWidth = bounds.width / columns;
     const cellHeight = bounds.height / rows;
     elements.forEach((elementObject, index) => {
-      const width = elementObject.geometry?.width ?? Math.min(150, cellWidth * 0.72);
-      const height = elementObject.geometry?.height ?? Math.min(84, cellHeight * 0.62);
+      const width = elementObject.geometry?.width ?? Math.min(220, cellWidth * 0.72);
+      const height = elementObject.geometry?.height ?? Math.min(104, cellHeight * 0.62);
       const column = index % columns;
       const row = Math.floor(index / columns);
       positions.set(elementObject.id, {
@@ -790,8 +807,8 @@
     const radius = Math.min(bounds.width, bounds.height) * 0.34;
     const center = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
     elements.forEach((elementObject, index) => {
-      const width = elementObject.geometry?.width ?? 138;
-      const height = elementObject.geometry?.height ?? 78;
+      const width = elementObject.geometry?.width ?? 210;
+      const height = elementObject.geometry?.height ?? 98;
       const angle = -Math.PI / 2 + (Math.PI * 2 * index) / Math.max(elements.length, 1);
       positions.set(elementObject.id, {
         x: center.x + Math.cos(angle) * radius - width / 2,
@@ -800,6 +817,94 @@
         height
       });
     });
+  }
+
+  function layoutLayered(elements, relationships, positions, bounds, direction) {
+    const ids = new Set(elements.map((item) => item.id));
+    const depths = assignRelationshipDepths(elements, relationships);
+    const buckets = new Map();
+    for (const item of elements) {
+      const bucket = buckets.get(depths.get(item.id) ?? 0) ?? [];
+      bucket.push(item);
+      buckets.set(depths.get(item.id) ?? 0, bucket);
+    }
+
+    const horizontal = direction === "leftToRight" || direction === "rightToLeft";
+    const reverse = direction === "rightToLeft" || direction === "bottomToTop";
+    const orderedDepths = Array.from(buckets.keys()).sort((a, b) => a - b);
+    const maxDepth = Math.max(...orderedDepths, 0);
+    const maxBucket = Math.max(...Array.from(buckets.values()).map((bucket) => bucket.length), 1);
+    const elementWidth = 220;
+    const elementHeight = 104;
+    const primaryGap = horizontal
+      ? Math.max(250, (bounds.width - elementWidth) / Math.max(maxDepth, 1))
+      : Math.max(170, (bounds.height - elementHeight) / Math.max(maxDepth, 1));
+    const secondaryGap = horizontal
+      ? Math.max(140, (bounds.height - elementHeight) / Math.max(maxBucket - 1, 1))
+      : Math.max(240, (bounds.width - elementWidth) / Math.max(maxBucket - 1, 1));
+
+    for (const depth of orderedDepths) {
+      const bucket = buckets.get(depth) ?? [];
+      bucket.forEach((item, index) => {
+        const width = item.geometry?.width ?? elementWidth;
+        const height = item.geometry?.height ?? elementHeight;
+        const depthOrder = reverse ? maxDepth - depth : depth;
+        const centeredIndex = index - (bucket.length - 1) / 2;
+        const primary = horizontal
+          ? bounds.x + depthOrder * primaryGap
+          : bounds.y + depthOrder * primaryGap;
+        const secondaryCenter = horizontal
+          ? bounds.y + bounds.height / 2 + centeredIndex * secondaryGap
+          : bounds.x + bounds.width / 2 + centeredIndex * secondaryGap;
+
+        positions.set(item.id, {
+          x: horizontal ? primary : secondaryCenter - width / 2,
+          y: horizontal ? secondaryCenter - height / 2 : primary,
+          width,
+          height
+        });
+      });
+    }
+
+    for (const item of elements) {
+      if (!ids.has(item.id) || positions.has(item.id)) {
+        continue;
+      }
+      positions.set(item.id, normalizeBox(item.geometry, bounds));
+    }
+  }
+
+  function assignRelationshipDepths(elements, relationships) {
+    const ids = new Set(elements.map((item) => item.id));
+    const order = new Map(elements.map((item, index) => [item.id, index]));
+    const depths = new Map(elements.map((item) => [item.id, 0]));
+    const validRelationships = relationships.filter((relationship) => {
+      if (!ids.has(relationship.from) || !ids.has(relationship.to)) {
+        return false;
+      }
+      return (order.get(relationship.to) ?? 0) > (order.get(relationship.from) ?? 0);
+    });
+
+    for (let pass = 0; pass < elements.length; pass += 1) {
+      let changed = false;
+      for (const relationship of validRelationships) {
+        const fromDepth = depths.get(relationship.from) ?? 0;
+        const toDepth = depths.get(relationship.to) ?? 0;
+        if (toDepth <= fromDepth && fromDepth < elements.length - 1) {
+          depths.set(relationship.to, fromDepth + 1);
+          changed = true;
+        }
+      }
+      if (!changed) {
+        break;
+      }
+    }
+
+    const maxUsefulDepth = Math.max(1, Math.min(elements.length - 1, 5));
+    for (const [id, depth] of depths.entries()) {
+      depths.set(id, Math.min(depth, maxUsefulDepth));
+    }
+    return depths;
   }
 
   function layoutTree(elements, relationships, positions, bounds, direction) {
@@ -859,7 +964,7 @@
 
   function calculateViewBox(visual, layout) {
     const viewport = visual.viewport ?? {};
-    const padding = viewport.padding ?? 64;
+    const padding = viewport.padding ?? 36;
     const allBoxes = Array.from(layout.positions.values());
     let boxes = allBoxes;
     if (viewport.mode === "fitSelection" && viewport.targetIds?.length) {
@@ -990,16 +1095,36 @@
   function addElementText(group, elementObject, box) {
     const label = elementObject.kind === "icon"
       ? elementObject.metadata?.icon || elementObject.label || elementObject.id
-      : elementObject.label || elementObject.id;
-    const lines = wrapLabel(String(label), Math.max(8, Math.floor(box.width / 8)));
+      : displayLabel(elementObject.label || elementObject.id);
+    const lines = wrapLabel(String(label), Math.max(8, Math.floor(box.width / 11)));
     const lineHeight = 15;
     const startY = box.y + box.height / 2 - ((lines.length - 1) * lineHeight) / 2;
     lines.forEach((line, index) => {
       group.appendChild(svgEl("text", { class: "element-label", x: box.x + box.width / 2, y: startY + index * lineHeight }, line));
     });
-    if (elementObject.description && box.height > 82) {
-      group.appendChild(svgEl("text", { class: "element-description", x: box.x + box.width / 2, y: box.y + box.height - 14 }, truncate(elementObject.description, 34)));
-    }
+  }
+
+  function addRelationshipLabel(group, label, mid) {
+    const lines = wrapLabel(String(label), 24).slice(0, 3);
+    const lineHeight = 13;
+    const width = Math.min(188, Math.max(56, Math.max(...lines.map((line) => line.length), 1) * 7 + 18));
+    const height = lines.length * lineHeight + 10;
+    group.appendChild(svgEl("rect", {
+      class: "relationship-label-bg",
+      x: mid.x - width / 2,
+      y: mid.y - height / 2,
+      width,
+      height,
+      rx: 4
+    }));
+    const startY = mid.y - ((lines.length - 1) * lineHeight) / 2;
+    lines.forEach((line, index) => {
+      group.appendChild(svgEl("text", {
+        class: "relationship-label",
+        x: mid.x,
+        y: startY + index * lineHeight
+      }, line));
+    });
   }
 
   function addBadges(group, badges, box) {
@@ -1047,8 +1172,78 @@
     return decoration && decoration !== "none" ? `url(#marker-${decoration})` : null;
   }
 
-  function relationshipPath(kind, start, end) {
+  function defaultRelationshipPath(visual, from, to) {
+    if (visual?.layout?.strategy === "layered") {
+      return Math.abs(centerOf(from).x - centerOf(to).x) > Math.abs(centerOf(from).y - centerOf(to).y)
+        ? "orthogonal"
+        : "curved";
+    }
+    return "straight";
+  }
+
+  function relationshipEndpoints(kind, from, to) {
+    if (kind !== "orthogonal") {
+      return {
+        start: edgePoint(from, centerOf(to)),
+        end: edgePoint(to, centerOf(from)),
+        route: "direct"
+      };
+    }
+
+    const route = chooseOrthogonalRoute(from, to);
+    const fromCenter = centerOf(from);
+    const toCenter = centerOf(to);
+    if (route === "horizontalFirst") {
+      const movingRight = toCenter.x >= fromCenter.x;
+      return {
+        start: sidePort(from, movingRight ? "right" : "left"),
+        end: sidePort(to, movingRight ? "left" : "right"),
+        route
+      };
+    }
+
+    const movingDown = toCenter.y >= fromCenter.y;
+    return {
+      start: sidePort(from, movingDown ? "bottom" : "top"),
+      end: sidePort(to, movingDown ? "top" : "bottom"),
+      route
+    };
+  }
+
+  function chooseOrthogonalRoute(from, to) {
+    const fromCenter = centerOf(from);
+    const toCenter = centerOf(to);
+    const dx = toCenter.x - fromCenter.x;
+    const dy = toCenter.y - fromCenter.y;
+    const horizontalThreshold = Math.min(from.width, to.width) * 0.28;
+    const verticalThreshold = Math.min(from.height, to.height) * 0.35;
+
+    if (Math.abs(dx) <= horizontalThreshold && Math.abs(dy) > verticalThreshold) {
+      return "verticalFirst";
+    }
+    return "horizontalFirst";
+  }
+
+  function sidePort(box, side) {
+    const center = centerOf(box);
+    if (side === "left") {
+      return { x: box.x, y: center.y };
+    }
+    if (side === "right") {
+      return { x: box.x + box.width, y: center.y };
+    }
+    if (side === "top") {
+      return { x: center.x, y: box.y };
+    }
+    return { x: center.x, y: box.y + box.height };
+  }
+
+  function relationshipPath(kind, start, end, route = "direct") {
     if (kind === "orthogonal") {
+      if (route === "verticalFirst") {
+        const midY = (start.y + end.y) / 2;
+        return `M ${start.x} ${start.y} L ${start.x} ${midY} L ${end.x} ${midY} L ${end.x} ${end.y}`;
+      }
       const midX = (start.x + end.x) / 2;
       return `M ${start.x} ${start.y} L ${midX} ${start.y} L ${midX} ${end.y} L ${end.x} ${end.y}`;
     }
@@ -1059,11 +1254,12 @@
     return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
   }
 
-  function relationshipMidpoint(kind, start, end) {
+  function relationshipMidpoint(kind, start, end, relationshipIndex = 0) {
+    const laneOffset = ((relationshipIndex % 3) - 1) * 14;
     if (kind === "orthogonal") {
-      return { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+      return { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 + laneOffset };
     }
-    return { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 - (kind === "curved" ? 24 : 0) };
+    return { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 - (kind === "curved" ? 24 : 0) + laneOffset };
   }
 
   function centerOf(box) {
@@ -1084,6 +1280,11 @@
       classes.set(focus.target.id, `focus-${focus.role || "primary"}`);
     }
     return classes;
+  }
+
+  function shouldShowRelationshipLabel(visual, relationship, focusedRelationshipIds) {
+    const relationshipCount = visual.relationships?.length ?? 0;
+    return relationshipCount <= 3 || focusedRelationshipIds.has(relationship.id);
   }
 
   function renderLocator(locator) {
@@ -1389,6 +1590,16 @@
     const lines = [];
     let current = "";
     for (const word of words) {
+      if (word.length > maxLength) {
+        if (current) {
+          lines.push(current);
+          current = "";
+        }
+        for (let index = 0; index < word.length; index += maxLength) {
+          lines.push(word.slice(index, index + maxLength));
+        }
+        continue;
+      }
       if (`${current} ${word}`.trim().length > maxLength && current) {
         lines.push(current);
         current = word;
@@ -1400,6 +1611,13 @@
       lines.push(current);
     }
     return lines.slice(0, 3);
+  }
+
+  function displayLabel(value) {
+    return String(value)
+      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+      .replace(/\s*\/\s*/g, " / ");
   }
 
   function truncate(value, maxLength) {

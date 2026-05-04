@@ -26,6 +26,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow: hidden;
   color: var(--ink);
   font-family: var(--body);
   background:
@@ -66,8 +67,10 @@ button:disabled {
 }
 
 .app-shell {
+  height: 100vh;
   min-height: 100vh;
   display: block;
+  overflow: hidden;
 }
 
 .brand-mark {
@@ -151,7 +154,7 @@ h3 {
 }
 
 .scene-list {
-  min-width: 120px;
+  min-width: 0;
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -160,11 +163,11 @@ h3 {
 }
 
 .scene-tab {
-  flex: 0 0 auto;
-  max-width: 240px;
-  min-height: 38px;
-  justify-content: flex-start;
-  text-align: left;
+  flex: 0 0 36px;
+  width: 36px;
+  min-height: 34px;
+  justify-content: center;
+  text-align: center;
   border-color: var(--line);
   background: transparent;
   color: var(--ink);
@@ -175,12 +178,17 @@ h3 {
 }
 
 .scene-tab.active {
+  flex-basis: min(260px, 52vw);
+  width: auto;
+  justify-content: flex-start;
+  text-align: left;
   border-color: var(--black);
   background: var(--panel-strong);
   box-shadow: 4px 4px 0 var(--black);
 }
 
 .stage-column {
+  height: 100vh;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -191,7 +199,7 @@ h3 {
   border-bottom: 1px solid var(--black);
   padding: 10px 16px;
   display: grid;
-  grid-template-columns: minmax(220px, 340px) minmax(120px, 1fr) auto auto;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr) auto auto;
   gap: 12px;
   align-items: center;
   justify-content: space-between;
@@ -199,6 +207,7 @@ h3 {
 }
 
 .toolbar-group {
+  min-width: 0;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -258,11 +267,13 @@ h3 {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(310px, 30vw, 370px);
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 26vw, 320px);
+  overflow: hidden;
 }
 
 .visual-panel {
   min-width: 0;
+  min-height: 0;
   padding: 18px;
   display: flex;
   flex-direction: column;
@@ -278,7 +289,7 @@ h3 {
 
 .visual-stage {
   flex: 1;
-  min-height: 520px;
+  min-height: 0;
   border: 1px solid var(--black);
   border-radius: 6px;
   background: #fffdf8;
@@ -297,6 +308,7 @@ h3 {
 }
 
 .inspector {
+  min-height: 0;
   border-left: 1px solid var(--black);
   background: rgba(255, 250, 240, 0.9);
   padding: 20px;
@@ -386,7 +398,7 @@ h3 {
 
 .element-label {
   fill: var(--ink);
-  font: 700 13px var(--body);
+  font: 800 20px var(--body);
   text-anchor: middle;
   dominant-baseline: middle;
   pointer-events: none;
@@ -394,7 +406,7 @@ h3 {
 
 .element-description {
   fill: var(--muted);
-  font: 11px var(--body);
+  font: 14px var(--body);
   text-anchor: middle;
   pointer-events: none;
 }
@@ -405,7 +417,7 @@ h3 {
 
 .badge-text {
   fill: #fffaf0;
-  font: 800 8px var(--mono);
+  font: 800 10px var(--mono);
   text-anchor: middle;
   dominant-baseline: middle;
 }
@@ -423,7 +435,7 @@ h3 {
 
 .relationship-label {
   fill: var(--ink);
-  font: 700 11px var(--mono);
+  font: 800 14px var(--mono);
   text-anchor: middle;
   dominant-baseline: middle;
   pointer-events: none;
