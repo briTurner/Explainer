@@ -33,13 +33,13 @@ type ArtifactKind =
 
 ```ts
 type ArtifactLocator =
-  | WorkspacePathLocator
+  | FilePathLocator
   | FileUrlLocator
   | ExternalUrlLocator;
 
-type WorkspacePathLocator = {
-  kind: "workspacePath";
-  path: string;
+type FilePathLocator = {
+  kind: "filePath";
+  path: string; // absolute local file path
   range?: TextRange;
   symbol?: string;
 };
@@ -67,7 +67,7 @@ type TextRange = {
 
 The protocol does not specify how a renderer must present artifacts. A VS Code renderer might navigate directly to a file and line range. A web renderer might show a link or side panel.
 
-Artifact locators use explicit tagged variants so renderers do not have to infer whether a string is workspace-relative, a local file URL, or an external URL. Source ranges use one-based lines and columns.
+Artifact locators use explicit tagged variants so renderers do not have to infer whether a string is an absolute local file path, a local file URL, or an external URL. `filePath.path` must be absolute. Source ranges use one-based lines and columns.
 
 ## Design Role
 

@@ -5,7 +5,7 @@ The Explainer auditor validates JSON or YAML files as Explainer documents.
 It runs in two deterministic phases:
 
 1. JSON Schema validation checks document structure, required fields, enum values, tagged unions, and scalar constraints.
-2. Semantic validation checks scene-local rules that JSON Schema cannot express cleanly, such as ID uniqueness and references between scene-local entities.
+2. Semantic validation checks rules that JSON Schema cannot express cleanly, such as ID uniqueness, references between scene-local entities, and local file path resolution.
 
 ## Usage
 
@@ -56,4 +56,5 @@ The auditor currently checks:
 - focus is not used without a visual,
 - animation targets reference same-scene visual elements or relationships,
 - viewport targets reference same-scene visual elements or relationships,
+- `filePath` artifact locators use absolute local paths that exist on this machine,
 - source ranges use valid ordering.

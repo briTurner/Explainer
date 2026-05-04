@@ -329,13 +329,13 @@ Artifacts describe supporting information that belongs to the scene. The protoco
 
 ```ts
 type ArtifactLocator =
-  | WorkspacePathLocator
+  | FilePathLocator
   | FileUrlLocator
   | ExternalUrlLocator;
 
-type WorkspacePathLocator = {
-  kind: "workspacePath";
-  path: string;
+type FilePathLocator = {
+  kind: "filePath";
+  path: string; // absolute local file path
   range?: TextRange;
   symbol?: string;
 };
@@ -361,6 +361,8 @@ type TextRange = {
 };
 ```
 
+`filePath.path` is an absolute local path. Use `fileUrl` only when the artifact is already represented as a file URI, and use `url` for external web resources.
+
 Examples:
 
 ```json
@@ -369,8 +371,8 @@ Examples:
   "kind": "sourceFile",
   "title": "Token validation",
   "locator": {
-    "kind": "workspacePath",
-    "path": "Sources/Auth/AuthService.swift",
+    "kind": "filePath",
+    "path": "/Users/example/project/Sources/Auth/AuthService.swift",
     "range": {
       "startLine": 42,
       "endLine": 61
@@ -385,8 +387,8 @@ Examples:
   "kind": "image",
   "title": "Debt flow through the banking system",
   "locator": {
-    "kind": "workspacePath",
-    "path": "artifacts/debt-flow.png"
+    "kind": "filePath",
+    "path": "/Users/example/project/artifacts/debt-flow.png"
   }
 }
 ```
@@ -573,8 +575,8 @@ This keeps the document format simpler and avoids asking agents to author a seco
           "kind": "sourceFile",
           "title": "API controller request entry point",
           "locator": {
-            "kind": "workspacePath",
-            "path": "Sources/API/ProfileController.swift",
+            "kind": "filePath",
+            "path": "/Users/example/project/Sources/API/ProfileController.swift",
             "range": {
               "startLine": 18,
               "endLine": 31
@@ -654,8 +656,8 @@ This keeps the document format simpler and avoids asking agents to author a seco
           "kind": "sourceFile",
           "title": "Token validation implementation",
           "locator": {
-            "kind": "workspacePath",
-            "path": "Sources/Auth/AuthService.swift",
+            "kind": "filePath",
+            "path": "/Users/example/project/Sources/Auth/AuthService.swift",
             "range": {
               "startLine": 42,
               "endLine": 61

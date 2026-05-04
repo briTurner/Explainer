@@ -200,6 +200,7 @@ def validate_semantics(document: Any) -> list[Diagnostic]:
                         suggestion="Remove animations or add a visual with matching animation targets.",
                     )
                 )
+            validate_artifact_file_paths(artifacts, f"{scene_path}/artifacts", diagnostics)
             validate_artifact_ranges(artifacts, f"{scene_path}/artifacts", diagnostics)
             continue
 
@@ -257,6 +258,7 @@ def validate_semantics(document: Any) -> list[Diagnostic]:
             relationship_ids,
             diagnostics,
         )
+        validate_artifact_file_paths(artifacts, f"{scene_path}/artifacts", diagnostics)
         validate_artifact_ranges(artifacts, f"{scene_path}/artifacts", diagnostics)
 
     return diagnostics
@@ -452,6 +454,42 @@ def validate_artifact_ranges(
                     path=range_path,
                     message=f"Text range starts at column {start_column} after it ends at column {end_column}.",
                     suggestion="Set startColumn less than or equal to endColumn when both columns are on the same line.",
+                )
+            )
+
+
+def validate_artifact_file_paths(
+    artifacts: Iterable[dict[str, Any]],
+    path: str,
+    diagnostics: list[Diagnostic],
+) -> None:
+    for artifact_index, artifact in enumerate(artifacts):
+        locator = artifact.get("locator", {})
+        if locator.get("kind") != "filePath":
+            continue
+
+        raw_path = locator.get("path", "")
+        locator_path = f"{path}/{artifact_index}/locator/path"
+        file_path = Path(raw_path)
+
+        if not file_path.is_absolute():
+            diagnostics.append(
+                Diagnostic(
+                    code="relative_file_path",
+                    path=locator_path,
+                    message=f"Local artifact path {raw_path!r} is relative.",
+                    suggestion="Use an absolute local file path so renderers and agents can resolve the artifact without workspace context.",
+                )
+            )
+            continue
+
+        if not file_path.exists():
+            diagnostics.append(
+                Diagnostic(
+                    code="missing_file_path",
+                    path=locator_path,
+                    message=f"Local artifact path {raw_path!r} does not exist on this machine.",
+                    suggestion="Point the artifact at an existing local file or remove the artifact if the evidence is unavailable.",
                 )
             )
 

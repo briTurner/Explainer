@@ -30,8 +30,8 @@ scenes:
         kind: sourceFile
         title: API controller request entry point
         locator:
-          kind: workspacePath
-          path: Sources/API/ProfileController.swift
+          kind: filePath
+          path: /Users/brianturner/Library/Mobile Documents/com~apple~CloudDocs/Development/Explainer/README.md
           range:
             startLine: 18
             endLine: 31

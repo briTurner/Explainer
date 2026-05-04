@@ -24,8 +24,8 @@ scenes:
         kind: sourceFile
         title: Parser regression test
         locator:
-          kind: workspacePath
-          path: Tests/ParserTests.swift
+          kind: filePath
+          path: /Users/example/project/Tests/ParserTests.swift
           range:
             startLine: 42
             endLine: 58
@@ -33,6 +33,6 @@ scenes:
         kind: log
         title: Test output
         locator:
-          kind: workspacePath
-          path: artifacts/test-output.log
+          kind: filePath
+          path: /Users/example/project/artifacts/test-output.log
 ```

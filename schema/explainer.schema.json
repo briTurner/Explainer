@@ -377,7 +377,7 @@
     "ArtifactLocator": {
       "oneOf": [
         {
-          "$ref": "#/$defs/WorkspacePathLocator"
+          "$ref": "#/$defs/FilePathLocator"
         },
         {
           "$ref": "#/$defs/FileUrlLocator"
@@ -387,16 +387,17 @@
         }
       ]
     },
-    "WorkspacePathLocator": {
+    "FilePathLocator": {
       "type": "object",
       "additionalProperties": false,
       "required": ["kind", "path"],
       "properties": {
         "kind": {
-          "const": "workspacePath"
+          "const": "filePath"
         },
         "path": {
           "type": "string",
+          "description": "Absolute local file path to the artifact.",
           "minLength": 1
         },
         "range": {

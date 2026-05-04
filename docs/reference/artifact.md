@@ -41,17 +41,17 @@ Longer explanation of what the artifact proves or supports.
 
 Location information for the artifact.
 
-Artifact locators use explicit tagged variants so renderers do not have to infer whether a string is workspace-relative, a local file URL, or an external URL.
+Artifact locators use explicit tagged variants so renderers do not have to infer whether a string is an absolute local file path, a local file URL, or an external URL.
 
 ```ts
 type ArtifactLocator =
-  | WorkspacePathLocator
+  | FilePathLocator
   | FileUrlLocator
   | ExternalUrlLocator;
 
-type WorkspacePathLocator = {
-  kind: "workspacePath";
-  path: string;
+type FilePathLocator = {
+  kind: "filePath";
+  path: string; // absolute local file path
   range?: TextRange;
   symbol?: string;
 };
@@ -76,6 +76,8 @@ type TextRange = {
   endColumn?: number;
 };
 ```
+
+`filePath.path` is an absolute local path. Use `fileUrl` only when the artifact is already represented as a file URI, and use `url` for external web resources.
 
 Source ranges use one-based lines and columns.
 

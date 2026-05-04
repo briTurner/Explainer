@@ -23,7 +23,7 @@ scenes:
       - id: api-source
         kind: sourceFile
         locator:
-          kind: workspacePath
+          kind: filePath
           path: Sources/API/ProfileController.swift
           range:
             startLine: 31

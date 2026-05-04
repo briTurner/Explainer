@@ -39,8 +39,8 @@ scenes:
         kind: sourceFile
         title: API controller request entry point
         locator:
-          kind: workspacePath
-          path: Sources/API/ProfileController.swift
+          kind: filePath
+          path: /Users/example/project/Sources/API/ProfileController.swift
           range:
             startLine: 18
             endLine: 31
