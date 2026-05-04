@@ -305,7 +305,7 @@ h3 {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(260px, 24vw, 340px);
+  grid-template-columns: minmax(0, 1fr) clamp(360px, 34vw, 560px);
   overflow: hidden;
 }
 
@@ -379,6 +379,52 @@ h3 {
 .artifact-item strong {
   display: block;
   margin-bottom: 4px;
+}
+
+.artifact-content {
+  margin-top: 10px;
+}
+
+.artifact-content-label {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font: 800 10px var(--mono);
+  text-transform: uppercase;
+}
+
+.code-excerpt {
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #141617;
+  color: #f7f2e8;
+  font: 11px/1.45 var(--mono);
+}
+
+.code-line {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+}
+
+.code-line code {
+  padding: 1px 10px 1px 8px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.code-line.highlighted {
+  background: rgba(255, 205, 87, 0.22);
+  color: #fff7dc;
+}
+
+.line-number {
+  user-select: none;
+  border-right: 1px solid rgba(247, 242, 232, 0.18);
+  padding: 1px 8px;
+  color: rgba(247, 242, 232, 0.55);
+  text-align: right;
 }
 
 .locator {

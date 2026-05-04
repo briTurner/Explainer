@@ -140,6 +140,8 @@
       this.elementsById = new Map();
       this.relationshipsById = new Map();
       this.positionsById = new Map();
+      this.artifactTextCache = new Map();
+      this.artifactRenderToken = 0;
       this.bindDom();
       this.bindEvents();
       this.loadDefaultDocument();
@@ -226,6 +228,7 @@
       this.document = documentObject;
       this.sceneIndex = 0;
       this.selected = null;
+      this.artifactRenderToken += 1;
       this.diagnostics = validateDocument(documentObject);
       this.render();
     }
@@ -236,6 +239,7 @@
       }
       this.sceneIndex = clamp(nextIndex, 0, this.document.scenes.length - 1);
       this.selected = null;
+      this.artifactRenderToken += 1;
       this.render();
     }
 
@@ -471,14 +475,50 @@
       replaceChildren(this.dom["narration-panel"], ...blocks.length ? blocks : [emptySmall("No narration for this scene.")]);
     }
 
-    renderArtifacts(scene) {
-      const artifacts = (scene.artifacts ?? []).map((artifact) => {
-        const item = el("article", { className: "artifact-item" });
-        item.appendChild(el("strong", { text: artifact.title || artifact.id }));
-        item.appendChild(renderArtifactCitation(artifact.locator));
-        return item;
-      });
-      replaceChildren(this.dom["artifact-panel"], ...artifacts.length ? artifacts : [emptySmall("No artifacts for this scene.")]);
+    async renderArtifacts(scene) {
+      const artifacts = scene.artifacts ?? [];
+      if (!artifacts.length) {
+        replaceChildren(this.dom["artifact-panel"], emptySmall("No artifacts for this scene."));
+        return;
+      }
+
+      const renderToken = this.artifactRenderToken;
+      replaceChildren(
+        this.dom["artifact-panel"],
+        ...artifacts.map((artifact) => renderArtifactSummary(artifact, emptySmall("Loading artifact content.")))
+      );
+
+      const items = await Promise.all(artifacts.map((artifact) => this.renderArtifactItem(artifact)));
+      if (renderToken !== this.artifactRenderToken) {
+        return;
+      }
+      replaceChildren(this.dom["artifact-panel"], ...items);
+    }
+
+    async renderArtifactItem(artifact) {
+      try {
+        const text = await this.fetchArtifactText(artifact.locator);
+        return renderArtifactSummary(artifact, renderTextExcerpt(text, artifact.locator));
+      } catch (error) {
+        return renderArtifactSummary(artifact, emptySmall(error.message));
+      }
+    }
+
+    async fetchArtifactText(locator) {
+      const url = artifactUrl(locator);
+      if (!url) {
+        throw new Error("No readable text location.");
+      }
+      if (this.artifactTextCache.has(url)) {
+        return this.artifactTextCache.get(url);
+      }
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Could not load ${locatorFileName(locator)}.`);
+      }
+      const text = await response.text();
+      this.artifactTextCache.set(url, text);
+      return text;
     }
 
     selectEntity(kind, id) {
@@ -1441,6 +1481,65 @@
       wrapper.append(` · lines ${locator.range.startLine}-${locator.range.endLine}`);
     }
     return wrapper;
+  }
+
+  function renderArtifactSummary(artifact, content) {
+    const item = el("article", { className: "artifact-item" });
+    item.appendChild(el("strong", { text: artifact.title || artifact.id }));
+    item.appendChild(renderArtifactCitation(artifact.locator));
+    item.appendChild(content);
+    return item;
+  }
+
+  function renderTextExcerpt(text, locator) {
+    const lines = String(text).replace(/\r\n/g, "\n").split("\n");
+    const range = normalizedRange(locator?.range, lines.length);
+    const startLine = range ? Math.max(1, range.startLine - 4) : 1;
+    const endLine = range ? Math.min(lines.length, range.endLine + 4) : Math.min(lines.length, 80);
+    const wrapper = el("div", { className: "artifact-content" });
+    const excerptLabel = range
+      ? `Excerpt, lines ${startLine}-${endLine}`
+      : `Preview, first ${endLine} lines`;
+    wrapper.appendChild(el("p", { className: "artifact-content-label", text: excerptLabel }));
+    const code = el("div", { className: "code-excerpt", role: "region", "aria-label": excerptLabel });
+    for (let lineNumber = startLine; lineNumber <= endLine; lineNumber += 1) {
+      const isHighlighted = range && lineNumber >= range.startLine && lineNumber <= range.endLine;
+      const row = el("div", { className: `code-line${isHighlighted ? " highlighted" : ""}` });
+      row.appendChild(el("span", { className: "line-number", text: String(lineNumber) }));
+      row.appendChild(el("code", { text: lines[lineNumber - 1] ?? "" }));
+      code.appendChild(row);
+    }
+    wrapper.appendChild(code);
+    return wrapper;
+  }
+
+  function normalizedRange(range, lineCount) {
+    if (!range || !lineCount) {
+      return null;
+    }
+    const startLine = clamp(Number(range.startLine) || 1, 1, lineCount);
+    const endLine = clamp(Number(range.endLine) || startLine, startLine, lineCount);
+    return { startLine, endLine };
+  }
+
+  function artifactUrl(locator) {
+    if (!locator) {
+      return null;
+    }
+    if (locator.kind === "workspacePath" && locator.path) {
+      return new URL(locator.path, workspaceRootUrl()).href;
+    }
+    if (locator.kind === "fileUrl" && locator.url) {
+      return locator.url;
+    }
+    if (locator.kind === "url" && locator.url) {
+      return locator.url;
+    }
+    return null;
+  }
+
+  function workspaceRootUrl() {
+    return new URL("../../", window.location.href);
   }
 
   function locatorFileName(locator) {
