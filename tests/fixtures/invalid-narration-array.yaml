@@ -1,0 +1,9 @@
+schemaVersion: 0.1.0
+metadata:
+  title: Invalid Narration Array Example
+scenes:
+  - id: deprecated-narration-array
+    title: Narration arrays are no longer valid
+    narration:
+      - kind: text
+        text: This used to be valid before scene narration became a single block.

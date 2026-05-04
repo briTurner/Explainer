@@ -78,7 +78,7 @@ A `Scene` is the canonical unit of explanation. It is comparable to a slide, but
 type Scene = {
   id: string;
   title?: string;
-  narration?: NarrationBlock[];
+  narration?: NarrationBlock;
   visual?: Visual;
   artifacts?: Artifact[];
   focus?: FocusTarget[];
@@ -529,12 +529,10 @@ This keeps the document format simpler and avoids asking agents to author a seco
     {
       "id": "request-enters-api",
       "title": "The request enters the API layer",
-      "narration": [
-        {
-          "kind": "text",
-          "text": "The request first reaches the API controller, which extracts the token before delegating validation."
-        }
-      ],
+      "narration": {
+        "kind": "text",
+        "text": "The request first reaches the API controller, which extracts the token before delegating validation."
+      },
       "visual": {
         "kind": "sequence",
         "layout": {
@@ -608,12 +606,10 @@ This keeps the document format simpler and avoids asking agents to author a seco
     {
       "id": "api-delegates-validation",
       "title": "The API delegates token validation",
-      "narration": [
-        {
-          "kind": "text",
-          "text": "The controller does not validate the token itself. It delegates that responsibility to the authentication service."
-        }
-      ],
+      "narration": {
+        "kind": "text",
+        "text": "The controller does not validate the token itself. It delegates that responsibility to the authentication service."
+      },
       "visual": {
         "kind": "sequence",
         "elements": [

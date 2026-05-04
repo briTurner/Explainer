@@ -4,8 +4,8 @@ metadata:
 scenes:
   - id: broken-scene
     narration:
-      - kind: text
-        text: This document is structurally valid but semantically invalid.
+      kind: text
+      text: This document is structurally valid but semantically invalid.
     visual:
       kind: flow
       elements:

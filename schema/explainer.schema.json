@@ -83,11 +83,7 @@
           "type": "string"
         },
         "narration": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/NarrationBlock"
-          }
+          "$ref": "#/$defs/NarrationBlock"
         },
         "visual": {
           "$ref": "#/$defs/Visual"

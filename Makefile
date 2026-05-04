@@ -11,6 +11,7 @@ audit-valid:
 
 audit-invalid:
 	.venv/bin/python tools/explainer_audit.py tests/fixtures/invalid-schema-explainer.yaml || true
+	.venv/bin/python tools/explainer_audit.py tests/fixtures/invalid-narration-array.yaml || true
 	.venv/bin/python tools/explainer_audit.py tests/fixtures/invalid-semantic-explainer.yaml || true
 
 web-renderer:
